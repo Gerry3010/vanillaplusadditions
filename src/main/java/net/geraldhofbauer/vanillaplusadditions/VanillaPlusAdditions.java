@@ -4,6 +4,10 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
+import net.geraldhofbauer.vanillaplusadditions.core.ModuleManager;
+import net.geraldhofbauer.vanillaplusadditions.modules.EnhancedToolsModule;
+import net.geraldhofbauer.vanillaplusadditions.modules.ImprovedStorageModule;
+import net.geraldhofbauer.vanillaplusadditions.modules.QualityOfLifeModule;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -69,6 +73,14 @@ public class VanillaPlusAdditions {
     // The constructor for the mod class is the first code that is run when your mod is loaded.
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
     public VanillaPlusAdditions(IEventBus modEventBus, ModContainer modContainer) {
+        LOGGER.info("Initializing VanillaPlusAdditions with module system");
+        
+        // Register modules first
+        registerModules();
+        
+        // Initialize the module system
+        ModuleManager.getInstance().initializeModules(modEventBus, modContainer);
+        
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 
@@ -89,9 +101,30 @@ public class VanillaPlusAdditions {
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        
+        LOGGER.info("VanillaPlusAdditions initialization complete. {}", 
+                   ModuleManager.getInstance().getModuleStats());
     }
 
+    /**
+     * Registers all available modules with the ModuleManager.
+     * Add new modules here to include them in the mod.
+     */
+    private void registerModules() {
+        ModuleManager moduleManager = ModuleManager.getInstance();
+        
+        // Register all available modules
+        moduleManager.registerModule(new EnhancedToolsModule());
+        moduleManager.registerModule(new ImprovedStorageModule());
+        moduleManager.registerModule(new QualityOfLifeModule());
+        
+        LOGGER.info("Registered {} modules", moduleManager.getAllModules().size());
+    }
+    
     private void commonSetup(FMLCommonSetupEvent event) {
+        // Run module common setup
+        ModuleManager.getInstance().commonSetup();
+        
         // Some common setup code
         LOGGER.info("HELLO FROM COMMON SETUP");
 
@@ -102,6 +135,9 @@ public class VanillaPlusAdditions {
         LOGGER.info("{}{}", Config.MAGIC_NUMBER_INTRODUCTION.get(), Config.MAGIC_NUMBER.getAsInt());
 
         Config.ITEM_STRINGS.get().forEach((item) -> LOGGER.info("ITEM >> {}", item));
+        
+        LOGGER.info("VanillaPlusAdditions common setup complete with {} enabled modules", 
+                   ModuleManager.getInstance().getEnabledModules().size());
     }
 
     // Add the example block item to the building blocks tab
@@ -123,9 +159,15 @@ public class VanillaPlusAdditions {
     static class ClientModEvents {
         @SubscribeEvent
         static void onClientSetup(FMLClientSetupEvent event) {
+            // Run module client setup
+            ModuleManager.getInstance().clientSetup();
+            
             // Some client setup code
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+            
+            LOGGER.info("VanillaPlusAdditions client setup complete with {} enabled modules", 
+                       ModuleManager.getInstance().getEnabledModules().size());
         }
     }
 }
