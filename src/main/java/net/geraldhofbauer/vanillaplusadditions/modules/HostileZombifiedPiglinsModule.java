@@ -1,9 +1,12 @@
 package net.geraldhofbauer.vanillaplusadditions.modules;
 
 import net.geraldhofbauer.vanillaplusadditions.core.AbstractModule;
+import net.geraldhofbauer.vanillaplusadditions.core.ModuleConfig;
+import net.geraldhofbauer.vanillaplusadditions.core.ModulesConfig;
 import net.minecraft.world.entity.monster.ZombifiedPiglin;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
@@ -20,7 +23,7 @@ import net.neoforged.neoforge.event.tick.EntityTickEvent;
  * - Removes the "forgiveness" mechanic where they calm down over time
  * - Maintains pack behavior where attacking one angers nearby ones
  */
-public class HostileZombifiedPiglinsModule extends AbstractModule {
+public class HostileZombifiedPiglinsModule extends AbstractModule implements ModuleConfig {
     
     public HostileZombifiedPiglinsModule() {
         super("hostile_zombified_piglins", "Hostile Zombified Piglins", 
@@ -86,17 +89,29 @@ public class HostileZombifiedPiglinsModule extends AbstractModule {
             return; // Only process on server side
         }
         
-        // Find all players within a reasonable range (32 blocks)
+        // Get detection range from configuration
+        int detectionRange = ModulesConfig.HOSTILE_ZOMBIFIED_PIGLINS_DETECTION_RANGE.get();
+        
+        // Find all players within the configured range
         var level = zombifiedPiglin.level();
         var nearbyPlayers = level.getEntitiesOfClass(Player.class, 
-            zombifiedPiglin.getBoundingBox().inflate(32.0),
+            zombifiedPiglin.getBoundingBox().inflate(detectionRange),
             player -> !player.isCreative() && !player.isSpectator());
         
         // Set the first player as the persistent anger target
         if (!nearbyPlayers.isEmpty()) {
             Player targetPlayer = nearbyPlayers.get(0);
             zombifiedPiglin.setPersistentAngerTarget(targetPlayer.getUUID());
-            zombifiedPiglin.setRemainingPersistentAngerTime(Integer.MAX_VALUE); // Stay angry indefinitely
+            
+            // Use configured anger duration
+            int angerDuration = ModulesConfig.HOSTILE_ZOMBIFIED_PIGLINS_ANGER_DURATION.get();
+            if (angerDuration == -1) {
+                // Indefinite anger
+                zombifiedPiglin.setRemainingPersistentAngerTime(Integer.MAX_VALUE);
+            } else {
+                zombifiedPiglin.setRemainingPersistentAngerTime(angerDuration);
+            }
+            
             zombifiedPiglin.startPersistentAngerTimer();
         }
     }
@@ -114,8 +129,9 @@ public class HostileZombifiedPiglinsModule extends AbstractModule {
             makeHostileToAllPlayers(zombifiedPiglin);
         }
         
-        // Ensure anger time doesn't decrease naturally
-        if (zombifiedPiglin.getRemainingPersistentAngerTime() < Integer.MAX_VALUE / 2) {
+        // Ensure anger time doesn't decrease naturally (only if configured for indefinite anger)
+        int configuredDuration = ModulesConfig.HOSTILE_ZOMBIFIED_PIGLINS_ANGER_DURATION.get();
+        if (configuredDuration == -1 && zombifiedPiglin.getRemainingPersistentAngerTime() < Integer.MAX_VALUE / 2) {
             zombifiedPiglin.setRemainingPersistentAngerTime(Integer.MAX_VALUE);
         }
     }
@@ -124,19 +140,32 @@ public class HostileZombifiedPiglinsModule extends AbstractModule {
      * Helper method to check if this specific module is enabled.
      */
     private boolean isModuleEnabled() {
-        // In a full implementation, this would check the configuration
-        // For now, we'll assume it's enabled if the module was initialized
-        return isInitialized();
+        // Check if the module is enabled in configuration
+        return ModulesConfig.isModuleEnabled(this) && isInitialized();
     }
     
     @Override
     public boolean isEnabledByDefault() {
-        // This significantly changes gameplay, so disabled by default
-        return false;
+        return true; // Now configurable, so can be enabled by default
     }
     
     @Override
     public boolean isConfigurable() {
         return true; // Players should be able to enable/disable this challenging feature
+    }
+    
+    // ModuleConfig implementation
+    @Override
+    public void buildConfig(ModConfigSpec.Builder builder) {
+        // The configuration is already built in ModulesConfig, so this is empty
+        // In a more dynamic system, we would build our config here
+    }
+    
+    @Override
+    public void onConfigLoad(ModConfigSpec spec) {
+        // React to configuration changes if needed
+        logger.debug("Configuration loaded for Hostile Zombified Piglins module");
+        logger.debug("  - Detection range: {} blocks", ModulesConfig.HOSTILE_ZOMBIFIED_PIGLINS_DETECTION_RANGE.get());
+        logger.debug("  - Anger duration: {} ticks", ModulesConfig.HOSTILE_ZOMBIFIED_PIGLINS_ANGER_DURATION.get());
     }
 }

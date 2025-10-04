@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 
 import net.geraldhofbauer.vanillaplusadditions.core.ModuleManager;
+import net.geraldhofbauer.vanillaplusadditions.core.ModulesConfig;
 import net.geraldhofbauer.vanillaplusadditions.modules.EnhancedToolsModule;
 import net.geraldhofbauer.vanillaplusadditions.modules.HostileZombifiedPiglinsModule;
 import net.geraldhofbauer.vanillaplusadditions.modules.ImprovedStorageModule;
@@ -56,7 +57,7 @@ public class VanillaPlusAdditions {
         // Creative tab handling is now managed by individual modules
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
-        modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        modContainer.registerConfig(ModConfig.Type.COMMON, ModulesConfig.SPEC);
         
         LOGGER.info("VanillaPlusAdditions initialization complete. {}", 
                    ModuleManager.getInstance().getModuleStats());
@@ -84,14 +85,13 @@ public class VanillaPlusAdditions {
         
         // Some common setup code
         LOGGER.info("HELLO FROM COMMON SETUP");
-
-        if (Config.LOG_DIRT_BLOCK.getAsBoolean()) {
-            LOGGER.info("DIRT BLOCK >> {}", BuiltInRegistries.BLOCK.getKey(Blocks.DIRT));
+        
+        // Log module configuration status
+        LOGGER.info("Module configuration loaded:");
+        for (var module : ModuleManager.getInstance().getAllModules()) {
+            boolean enabled = ModulesConfig.isModuleEnabled(module);
+            LOGGER.info("  - {}: {}", module.getDisplayName(), enabled ? "ENABLED" : "DISABLED");
         }
-
-        LOGGER.info("{}{}", Config.MAGIC_NUMBER_INTRODUCTION.get(), Config.MAGIC_NUMBER.getAsInt());
-
-        Config.ITEM_STRINGS.get().forEach((item) -> LOGGER.info("ITEM >> {}", item));
         
         LOGGER.info("VanillaPlusAdditions common setup complete with {} enabled modules", 
                    ModuleManager.getInstance().getEnabledModules().size());

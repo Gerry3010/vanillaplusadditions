@@ -57,8 +57,8 @@ public class ModuleManager {
         LOGGER.debug("Registering module: {} ({})", module.getDisplayName(), moduleId);
         registeredModules.put(moduleId, module);
         
-        // Set initial enabled state based on default and configuration
-        boolean enabled = module.isEnabledByDefault(); // TODO: Check configuration override
+        // Set initial enabled state based on configuration or default
+        boolean enabled = ModulesConfig.isModuleEnabled(module);
         moduleEnabledState.put(moduleId, enabled);
         
         if (enabled) {

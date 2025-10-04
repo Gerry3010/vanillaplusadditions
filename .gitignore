@@ -43,4 +43,19 @@ test-server/banned-*.json
 test-server/ops.json
 test-server/whitelist.json
 
+# test client (ignore runtime files but keep configuration)
+test-client/logs/
+test-client/saves/
+test-client/screenshots/
+test-client/crash-reports/
+test-client/resourcepacks/
+test-client/shaderpacks/
+test-client/server-resource-packs/
+test-client/realms_persistence.json
+test-client/servers.dat
+test-client/hotbar.nbt
+test-client/*.log
+test-client/neoforge-installer.jar
+test-client/neoforge-installer.jar.log
+
 repo
