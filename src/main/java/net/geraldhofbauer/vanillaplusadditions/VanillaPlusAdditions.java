@@ -29,7 +29,7 @@ import net.neoforged.neoforge.event.server.ServerStartingEvent;
 @Mod(VanillaPlusAdditions.MODID)
 public class VanillaPlusAdditions {
     // Define mod id in a common place for everything to reference
-    public static final String MODID = "vanillaplusadditions";
+    public static final String MODID = "net.geraldhofbauer.vanillaplusadditions";
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
 
