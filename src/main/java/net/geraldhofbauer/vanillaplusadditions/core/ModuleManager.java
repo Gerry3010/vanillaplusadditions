@@ -57,8 +57,12 @@ public class ModuleManager {
         LOGGER.debug("Registering module: {} ({})", module.getDisplayName(), moduleId);
         registeredModules.put(moduleId, module);
         
-        // Set initial enabled state based on configuration or default
-        boolean enabled = ModulesConfig.isModuleEnabled(module);
+        // Register module with configuration system
+        ModulesConfig.registerModule(module);
+        
+        // Set initial enabled state based on module default since config isn't ready yet
+        // The actual config check will happen later during initialization
+        boolean enabled = module.isEnabledByDefault();
         moduleEnabledState.put(moduleId, enabled);
         
         if (enabled) {
@@ -76,6 +80,18 @@ public class ModuleManager {
         if (initialized) {
             LOGGER.warn("Module manager already initialized, skipping");
             return;
+        }
+        
+        // Re-check enabled state now that configuration is available
+        enabledModules.clear();
+        for (Module module : registeredModules.values()) {
+            boolean configEnabled = ModulesConfig.isModuleEnabled(module);
+            String moduleId = module.getModuleId();
+            moduleEnabledState.put(moduleId, configEnabled);
+            
+            if (configEnabled) {
+                enabledModules.add(module);
+            }
         }
         
         LOGGER.info("Initializing {} enabled modules out of {} registered", 

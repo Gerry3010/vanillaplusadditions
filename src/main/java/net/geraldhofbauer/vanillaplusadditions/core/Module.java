@@ -76,4 +76,15 @@ public interface Module {
     default boolean isConfigurable() {
         return true;
     }
+    
+    /**
+     * Gets the configuration instance for this module.
+     * Returns null if the module doesn't have configuration,
+     * otherwise returns an instance that implements ModuleConfig.
+     * 
+     * @return The module's configuration instance, or null if no config
+     */
+    default ModuleConfig getConfig() {
+        return null; // Default implementation for modules without config
+    }
 }

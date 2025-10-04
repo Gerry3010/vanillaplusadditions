@@ -41,4 +41,14 @@ public interface ModuleConfig {
         }
         return "unknown_module";
     }
+    
+    /**
+     * Checks if the module is enabled according to its configuration.
+     * This method should return the current enabled state from the configuration.
+     * 
+     * @return true if the module is enabled, false otherwise
+     */
+    default boolean isEnabled() {
+        return true; // Default implementation for configs that don't have enabled option
+    }
 }

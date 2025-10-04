@@ -7,7 +7,7 @@ import com.mojang.logging.LogUtils;
 import net.geraldhofbauer.vanillaplusadditions.core.ModuleManager;
 import net.geraldhofbauer.vanillaplusadditions.core.ModulesConfig;
 import net.geraldhofbauer.vanillaplusadditions.modules.EnhancedToolsModule;
-import net.geraldhofbauer.vanillaplusadditions.modules.HostileZombifiedPiglinsModule;
+import net.geraldhofbauer.vanillaplusadditions.modules.hostile_zombified_piglins.HostileZombifiedPiglinsModule;
 import net.geraldhofbauer.vanillaplusadditions.modules.ImprovedStorageModule;
 import net.geraldhofbauer.vanillaplusadditions.modules.QualityOfLifeModule;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -57,7 +57,7 @@ public class VanillaPlusAdditions {
         // Creative tab handling is now managed by individual modules
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
-        modContainer.registerConfig(ModConfig.Type.COMMON, ModulesConfig.SPEC);
+        modContainer.registerConfig(ModConfig.Type.COMMON, ModulesConfig.getSpec());
         
         LOGGER.info("VanillaPlusAdditions initialization complete. {}", 
                    ModuleManager.getInstance().getModuleStats());
