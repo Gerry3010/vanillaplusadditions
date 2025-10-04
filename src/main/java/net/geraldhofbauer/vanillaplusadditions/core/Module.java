@@ -79,12 +79,10 @@ public interface Module {
     
     /**
      * Gets the configuration instance for this module.
-     * Returns null if the module doesn't have configuration,
-     * otherwise returns an instance that implements ModuleConfig.
+     * All modules must have a configuration instance, even if it only contains
+     * the standard "enabled" property.
      * 
-     * @return The module's configuration instance, or null if no config
+     * @return The module's configuration instance (never null)
      */
-    default ModuleConfig getConfig() {
-        return null; // Default implementation for modules without config
-    }
+    ModuleConfig getConfig();
 }

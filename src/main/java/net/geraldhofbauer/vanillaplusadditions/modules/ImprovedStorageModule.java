@@ -2,6 +2,8 @@ package net.geraldhofbauer.vanillaplusadditions.modules;
 
 import net.geraldhofbauer.vanillaplusadditions.VanillaPlusAdditions;
 import net.geraldhofbauer.vanillaplusadditions.core.AbstractModule;
+import net.geraldhofbauer.vanillaplusadditions.core.AbstractModuleConfig;
+import net.geraldhofbauer.vanillaplusadditions.core.ModuleConfig;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -71,5 +73,11 @@ public class ImprovedStorageModule extends AbstractModule {
     public boolean isEnabledByDefault() {
         // This module might be more experimental, so disabled by default
         return false;
+    }
+    
+    @Override
+    public ModuleConfig getConfig() {
+        // This module uses the default configuration (enabled/disabled only)
+        return AbstractModuleConfig.createDefault(this);
     }
 }

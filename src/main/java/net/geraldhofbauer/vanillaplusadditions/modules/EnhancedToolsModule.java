@@ -2,6 +2,8 @@ package net.geraldhofbauer.vanillaplusadditions.modules;
 
 import net.geraldhofbauer.vanillaplusadditions.VanillaPlusAdditions;
 import net.geraldhofbauer.vanillaplusadditions.core.AbstractModule;
+import net.geraldhofbauer.vanillaplusadditions.core.AbstractModuleConfig;
+import net.geraldhofbauer.vanillaplusadditions.core.ModuleConfig;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -59,5 +61,11 @@ public class EnhancedToolsModule extends AbstractModule {
     @Override
     protected void onClientSetup() {
         logger.debug("Enhanced Tools module client setup complete");
+    }
+    
+    @Override
+    public ModuleConfig getConfig() {
+        // This module uses the default configuration (enabled/disabled only)
+        return AbstractModuleConfig.createDefault(this);
     }
 }

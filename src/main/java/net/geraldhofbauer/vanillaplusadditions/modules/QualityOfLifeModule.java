@@ -1,6 +1,8 @@
 package net.geraldhofbauer.vanillaplusadditions.modules;
 
 import net.geraldhofbauer.vanillaplusadditions.core.AbstractModule;
+import net.geraldhofbauer.vanillaplusadditions.core.AbstractModuleConfig;
+import net.geraldhofbauer.vanillaplusadditions.core.ModuleConfig;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -63,5 +65,11 @@ public class QualityOfLifeModule extends AbstractModule {
     @Override
     public boolean isConfigurable() {
         return true; // This module should definitely be configurable
+    }
+    
+    @Override
+    public ModuleConfig getConfig() {
+        // This module uses the default configuration (enabled/disabled only)
+        return AbstractModuleConfig.createDefault(this);
     }
 }

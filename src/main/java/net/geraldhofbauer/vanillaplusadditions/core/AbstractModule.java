@@ -14,6 +14,7 @@ public abstract class AbstractModule implements Module {
     protected final String moduleId;
     protected final String displayName;
     protected final String description;
+    protected final ModuleConfig config;
     
     protected IEventBus modEventBus;
     protected ModContainer modContainer;
@@ -29,6 +30,22 @@ public abstract class AbstractModule implements Module {
         this.moduleId = moduleId;
         this.displayName = displayName;
         this.description = description;
+        this.config = AbstractModuleConfig.createDefault(this);
+        this.logger = LoggerFactory.getLogger(this.getClass());
+    }
+
+    /**
+     * Creates a new abstract module.
+     *
+     * @param moduleId The unique module identifier
+     * @param displayName The human-readable module name
+     * @param description The module description
+     */
+    protected AbstractModule(String moduleId, String displayName, String description, ModuleConfig config) {
+        this.moduleId = moduleId;
+        this.displayName = displayName;
+        this.description = description;
+        this.config = config;
         this.logger = LoggerFactory.getLogger(this.getClass());
     }
     
@@ -127,5 +144,10 @@ public abstract class AbstractModule implements Module {
             throw new IllegalStateException("Mod container not available before initialization");
         }
         return modContainer;
+    }
+
+    @Override
+    public ModuleConfig getConfig() {
+        return config;
     }
 }
