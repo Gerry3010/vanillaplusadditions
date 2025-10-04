@@ -54,6 +54,7 @@ test-client/server-resource-packs/
 test-client/realms_persistence.json
 test-client/servers.dat
 test-client/hotbar.nbt
+test-client/mods/*.jar
 test-client/*.log
 test-client/neoforge-installer.jar
 test-client/neoforge-installer.jar.log
