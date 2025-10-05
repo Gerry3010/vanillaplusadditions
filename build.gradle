@@ -161,6 +161,42 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
 
+// Custom tasks to copy the built JAR to test environments
+tasks.register('copyJarToTestServer', Copy) {
+    description = 'Copies the built JAR file to the test server mods directory'
+    dependsOn jar
+    from jar.archiveFile
+    into layout.projectDirectory.dir('test-server/mods')
+    
+    doFirst {
+        logger.lifecycle("Copying JAR to test-server/mods/")
+    }
+}
+
+tasks.register('copyJarToTestClient', Copy) {
+    description = 'Copies the built JAR file to the test client mods directory'
+    dependsOn jar
+    from jar.archiveFile
+    into layout.projectDirectory.dir('test-client/mods')
+    
+    doFirst {
+        logger.lifecycle("Copying JAR to test-client/mods/")
+    }
+}
+
+// Combined task to copy to both test environments
+tasks.register('copyJarToTestEnvironments') {
+    description = 'Copies the built JAR file to both test server and client mods directories'
+    dependsOn 'copyJarToTestServer', 'copyJarToTestClient'
+    
+    doLast {
+        logger.lifecycle("JAR file copied to both test environments")
+    }
+}
+
+// Automatically copy JAR after successful build
+build.finalizedBy 'copyJarToTestEnvironments'
+
 // IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
 idea {
     module {
