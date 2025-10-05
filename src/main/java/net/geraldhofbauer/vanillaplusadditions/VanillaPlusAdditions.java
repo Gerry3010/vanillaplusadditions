@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 @Mod(VanillaPlusAdditions.MODID)
 public class VanillaPlusAdditions {
     // Define mod id in a common place for everything to reference
-    public static final String MODID = "net.geraldhofbauer.vanillaplusadditions";
+    public static final String MODID = "vanillaplusadditions";
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
 
