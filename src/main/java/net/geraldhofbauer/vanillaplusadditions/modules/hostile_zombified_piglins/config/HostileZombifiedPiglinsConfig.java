@@ -2,6 +2,7 @@ package net.geraldhofbauer.vanillaplusadditions.modules.hostile_zombified_piglin
 
 import net.geraldhofbauer.vanillaplusadditions.core.AbstractModuleConfig;
 import net.geraldhofbauer.vanillaplusadditions.core.Module;
+import net.geraldhofbauer.vanillaplusadditions.modules.hostile_zombified_piglins.HostileZombifiedPiglinsModule;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +11,7 @@ import org.slf4j.LoggerFactory;
  * Configuration class for the Hostile Zombified Piglins module.
  * This class handles all configuration options specific to making zombified piglins hostile.
  */
-public class HostileZombifiedPiglinsConfig extends AbstractModuleConfig {
+public class HostileZombifiedPiglinsConfig extends AbstractModuleConfig<HostileZombifiedPiglinsModule, HostileZombifiedPiglinsConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HostileZombifiedPiglinsConfig.class);
     
     // Module-specific configuration values - enabled is handled by AbstractModuleConfig
@@ -22,7 +23,7 @@ public class HostileZombifiedPiglinsConfig extends AbstractModuleConfig {
      * 
      * @param module The module this configuration belongs to
      */
-    public HostileZombifiedPiglinsConfig(Module module) {
+    public HostileZombifiedPiglinsConfig(HostileZombifiedPiglinsModule module) {
         super(module);
     }
     

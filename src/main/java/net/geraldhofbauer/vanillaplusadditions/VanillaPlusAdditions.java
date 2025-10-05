@@ -1,29 +1,22 @@
 package net.geraldhofbauer.vanillaplusadditions;
 
-import org.slf4j.Logger;
-
 import com.mojang.logging.LogUtils;
-
 import net.geraldhofbauer.vanillaplusadditions.core.ModuleManager;
 import net.geraldhofbauer.vanillaplusadditions.core.ModulesConfig;
-import net.geraldhofbauer.vanillaplusadditions.modules.EnhancedToolsModule;
 import net.geraldhofbauer.vanillaplusadditions.modules.hostile_zombified_piglins.HostileZombifiedPiglinsModule;
-import net.geraldhofbauer.vanillaplusadditions.modules.ImprovedStorageModule;
-import net.geraldhofbauer.vanillaplusadditions.modules.QualityOfLifeModule;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraft.client.Minecraft;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod(VanillaPlusAdditions.MODID)
@@ -37,13 +30,13 @@ public class VanillaPlusAdditions {
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
     public VanillaPlusAdditions(IEventBus modEventBus, ModContainer modContainer) {
         LOGGER.info("Initializing VanillaPlusAdditions with module system");
-        
+
         // Register modules first
         registerModules();
-        
+
         // Initialize the module system
         ModuleManager.getInstance().initializeModules(modEventBus, modContainer);
-        
+
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 
@@ -58,9 +51,9 @@ public class VanillaPlusAdditions {
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, ModulesConfig.getSpec());
-        
-        LOGGER.info("VanillaPlusAdditions initialization complete. {}", 
-                   ModuleManager.getInstance().getModuleStats());
+
+        LOGGER.info("VanillaPlusAdditions initialization complete. {}",
+                ModuleManager.getInstance().getModuleStats());
     }
 
     /**
@@ -69,32 +62,29 @@ public class VanillaPlusAdditions {
      */
     private void registerModules() {
         ModuleManager moduleManager = ModuleManager.getInstance();
-        
+
         // Register all available modules
-        moduleManager.registerModule(new EnhancedToolsModule());
         moduleManager.registerModule(new HostileZombifiedPiglinsModule());
-        moduleManager.registerModule(new ImprovedStorageModule());
-        moduleManager.registerModule(new QualityOfLifeModule());
-        
+
         LOGGER.info("Registered {} modules", moduleManager.getAllModules().size());
     }
-    
+
     private void commonSetup(FMLCommonSetupEvent event) {
         // Run module common setup
         ModuleManager.getInstance().commonSetup();
-        
+
         // Some common setup code
         LOGGER.info("HELLO FROM COMMON SETUP");
-        
+
         // Log module configuration status
         LOGGER.info("Module configuration loaded:");
         for (var module : ModuleManager.getInstance().getAllModules()) {
             boolean enabled = ModulesConfig.isModuleEnabled(module);
             LOGGER.info("  - {}: {}", module.getDisplayName(), enabled ? "ENABLED" : "DISABLED");
         }
-        
-        LOGGER.info("VanillaPlusAdditions common setup complete with {} enabled modules", 
-                   ModuleManager.getInstance().getEnabledModules().size());
+
+        LOGGER.info("VanillaPlusAdditions common setup complete with {} enabled modules",
+                ModuleManager.getInstance().getEnabledModules().size());
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -111,13 +101,13 @@ public class VanillaPlusAdditions {
         static void onClientSetup(FMLClientSetupEvent event) {
             // Run module client setup
             ModuleManager.getInstance().clientSetup();
-            
+
             // Some client setup code
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
-            
-            LOGGER.info("VanillaPlusAdditions client setup complete with {} enabled modules", 
-                       ModuleManager.getInstance().getEnabledModules().size());
+
+            LOGGER.info("VanillaPlusAdditions client setup complete with {} enabled modules",
+                    ModuleManager.getInstance().getEnabledModules().size());
         }
     }
 }

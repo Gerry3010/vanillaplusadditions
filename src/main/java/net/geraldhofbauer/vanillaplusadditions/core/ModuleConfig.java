@@ -51,4 +51,11 @@ public interface ModuleConfig {
     default boolean isEnabled() {
         return true; // Default implementation for configs that don't have enabled option
     }
+
+
+    /**
+     * Gets the module this configuration belongs to.
+     * @return The module instance
+     */
+    Module getModule();
 }

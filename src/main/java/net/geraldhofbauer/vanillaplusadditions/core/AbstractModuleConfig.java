@@ -9,21 +9,21 @@ import org.slf4j.LoggerFactory;
  * This class provides the standard "enabled" property that all modules should have,
  * and allows subclasses to add their own specific configuration options.
  */
-public abstract class AbstractModuleConfig implements ModuleConfig {
+public abstract class AbstractModuleConfig<M extends Module, C extends ModuleConfig> implements ModuleConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractModuleConfig.class);
     
     // Standard configuration value that all modules have
     protected ModConfigSpec.BooleanValue enabled;
     
     // Module reference for getting default values
-    private Module module;
+    private final M module;
     
     /**
      * Creates an abstract module configuration.
      * 
      * @param module The module this configuration belongs to
      */
-    protected AbstractModuleConfig(Module module) {
+    protected AbstractModuleConfig(M module) {
         this.module = module;
     }
     
@@ -107,38 +107,28 @@ public abstract class AbstractModuleConfig implements ModuleConfig {
      * 
      * @return The module instance
      */
-    protected Module getModule() {
+    public M getModule() {
         return module;
     }
     
     /**
      * Creates a default module configuration instance that only provides
      * the standard enabled/disabled functionality.
-     * 
+     * <p>
      * This is useful for modules that don't need any custom configuration
      * options beyond the basic enable/disable control.
      * 
      * @param module The module this configuration belongs to
      * @return A default configuration instance with only enabled/disabled functionality
      */
-    public static ModuleConfig createDefault(Module module) {
-        return new DefaultModuleConfig(module);
+    public static <MO extends Module> DefaultModuleConfig<MO> createDefault(MO module) {
+        return new DefaultModuleConfig<>(module);
     }
-    
-    /**
-     * Default implementation of ModuleConfig that only provides enabled/disabled functionality.
-     * This is a concrete implementation of AbstractModuleConfig with no additional configuration.
-     */
-    private static class DefaultModuleConfig extends AbstractModuleConfig {
-        /**
-         * Creates a default module configuration.
-         * 
-         * @param module The module this configuration belongs to
-         */
-        private DefaultModuleConfig(Module module) {
+
+    public static class DefaultModuleConfig<MO extends Module> extends AbstractModuleConfig<MO, DefaultModuleConfig<MO>> {
+        DefaultModuleConfig(MO module) {
             super(module);
         }
-        
-        // No additional configuration needed - uses only the base class functionality
+        // Keine zusätzliche Konfiguration erforderlich
     }
 }
