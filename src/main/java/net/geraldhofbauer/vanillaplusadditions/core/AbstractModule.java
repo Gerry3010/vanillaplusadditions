@@ -6,7 +6,6 @@ import net.neoforged.fml.ModContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.function.Function;
 
 /**
@@ -154,4 +153,24 @@ public abstract class AbstractModule<M extends Module, C extends ModuleConfig> i
     public C getConfig() {
         return config;
     }
+
+    /**
+     * Helper method to check if this specific module is enabled.
+     */
+    public boolean isModuleEnabled() {
+        // During initialization, assume enabled if isInitialized is true
+        // After initialization, check configuration
+        if (!isInitialized()) {
+            return true;
+        }
+
+        try {
+            return !config.isEnabled();
+        } catch (Exception e) {
+            // If config not available yet, return true to allow initialization
+            logger.debug("Config not available during module enabled check: {}", e.getMessage());
+            return false;
+        }
+    }
+
 }

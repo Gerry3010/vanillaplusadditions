@@ -1,8 +1,6 @@
 package net.geraldhofbauer.vanillaplusadditions.modules.hostile_zombified_piglins;
 
 import net.geraldhofbauer.vanillaplusadditions.core.AbstractModule;
-import net.geraldhofbauer.vanillaplusadditions.core.AbstractModuleConfig;
-import net.geraldhofbauer.vanillaplusadditions.core.ModuleConfig;
 import net.geraldhofbauer.vanillaplusadditions.modules.hostile_zombified_piglins.config.HostileZombifiedPiglinsConfig;
 import net.minecraft.world.entity.monster.ZombifiedPiglin;
 import net.minecraft.world.entity.player.Player;
@@ -10,8 +8,11 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Hostile Zombified Piglins Module
@@ -28,6 +29,13 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifiedPiglinsModule, HostileZombifiedPiglinsConfig> {
 
+    // Do we need to track which piglins are angry at which players? If we find a threshold after which to "switch" targets, we might.
+    // For now, just keep them angry at the nearest player.
+    // 2 mins later: We store the timestamp of when the player was the nearest, and after that time, we can switch to a new nearest player.
+    // This way, if a player is just passing by, the piglin won't switch targets immediately.
+    // However, if the player stays in range, the piglin will eventually switch to the new nearest player.
+    // This creates a more dynamic and challenging experience.
+    protected HashMap<UUID, NearestPlayerTime> angryPiglins = new HashMap<>(); // Maps zombified piglin UUIDs to the player UUID they are angry at
 
     public HostileZombifiedPiglinsModule() {
         super("hostile_zombified_piglins",
@@ -55,14 +63,14 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
      */
     @SubscribeEvent
     public void onEntityJoinLevel(EntityJoinLevelEvent event) {
-        if (!isModuleEnabled()) {
+        if (isModuleEnabled()) {
             return;
         }
 
         // Check if the entity is a zombified piglin
         if (event.getEntity() instanceof ZombifiedPiglin zombifiedPiglin) {
             // Make it angry at all nearby players immediately
-            makeHostileToAllPlayers(zombifiedPiglin);
+            angryPiglins.put(zombifiedPiglin.getUUID(), makeHostileToPlayer(zombifiedPiglin, null));
 
             logger.debug("Made zombified piglin hostile at spawn: {}", zombifiedPiglin.getUUID());
         }
@@ -73,7 +81,7 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
      */
     @SubscribeEvent
     public void onEntityTick(EntityTickEvent.Pre event) {
-        if (!isModuleEnabled()) {
+        if (isModuleEnabled()) {
             return;
         }
 
@@ -89,11 +97,49 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
     }
 
     /**
-     * Makes a zombified piglin hostile to all players in the area
+     * Makes a zombified piglin hostile to all players in the area and returns the nearest player (the one that was targeted).
+     *
+     * @return The nearest player that was targeted, or null if no players are nearby
      */
-    private void makeHostileToAllPlayers(ZombifiedPiglin zombifiedPiglin) {
+    private NearestPlayerTime makeHostileToPlayer(ZombifiedPiglin zombifiedPiglin, @Nullable Player specificPlayer) {
+        Player targetPlayer = null;
+
+        if (specificPlayer == null) {
+            var nearbyPlayers = getNearbyPlayers(zombifiedPiglin);
+            if (nearbyPlayers == null) return null;
+            // Set the first player as the persistent anger target
+            this.logger.debug("Found {} nearby players for zombified piglin {}", nearbyPlayers.size(), zombifiedPiglin.getUUID());
+            if (nearbyPlayers.isEmpty()) {
+                // No players nearby, clear anger
+                zombifiedPiglin.setRemainingPersistentAngerTime(0);
+                zombifiedPiglin.setPersistentAngerTarget(null);
+                return null;
+            }
+
+            targetPlayer = nearbyPlayers.getFirst();
+        } else {
+            targetPlayer = specificPlayer;
+        }
+
+        zombifiedPiglin.setPersistentAngerTarget(targetPlayer.getUUID());
+
+        // Use configured anger duration
+        int angerDuration = config.getAngerDurationValue();
+        if (angerDuration == -1) {
+            // Indefinite anger
+            zombifiedPiglin.setRemainingPersistentAngerTime(Integer.MAX_VALUE);
+        } else {
+            zombifiedPiglin.setRemainingPersistentAngerTime(angerDuration);
+        }
+
+        zombifiedPiglin.startPersistentAngerTimer();
+
+        return new NearestPlayerTime(targetPlayer, System.currentTimeMillis());
+    }
+
+    private @Nullable List<Player> getNearbyPlayers(ZombifiedPiglin zombifiedPiglin) {
         if (zombifiedPiglin.level().isClientSide) {
-            return; // Only process on server side
+            return null;
         }
 
         // Get detection range from configuration
@@ -104,23 +150,7 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
         var nearbyPlayers = level.getEntitiesOfClass(Player.class,
                 zombifiedPiglin.getBoundingBox().inflate(detectionRange),
                 player -> !player.isCreative() && !player.isSpectator());
-
-        // Set the first player as the persistent anger target
-        if (!nearbyPlayers.isEmpty()) {
-            Player targetPlayer = nearbyPlayers.get(0);
-            zombifiedPiglin.setPersistentAngerTarget(targetPlayer.getUUID());
-
-            // Use configured anger duration
-            int angerDuration = config.getAngerDurationValue();
-            if (angerDuration == -1) {
-                // Indefinite anger
-                zombifiedPiglin.setRemainingPersistentAngerTime(Integer.MAX_VALUE);
-            } else {
-                zombifiedPiglin.setRemainingPersistentAngerTime(angerDuration);
-            }
-
-            zombifiedPiglin.startPersistentAngerTimer();
-        }
+        return nearbyPlayers;
     }
 
     /**
@@ -132,8 +162,49 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
         }
 
         // If the piglin isn't angry, find a nearby player to be angry at
-        if (!zombifiedPiglin.isAngryAt(null) || zombifiedPiglin.getRemainingPersistentAngerTime() < 100) {
-            makeHostileToAllPlayers(zombifiedPiglin);
+
+        var nearbyPlayers = getNearbyPlayers(zombifiedPiglin);
+        if (nearbyPlayers == null) return;
+        Player nearestPlayer = nearbyPlayers.isEmpty() ? null : nearbyPlayers.getFirst();
+        if (nearestPlayer == null) {
+            // No players nearby, clear anger
+            angryPiglins.remove(zombifiedPiglin.getUUID());
+            zombifiedPiglin.setRemainingPersistentAngerTime(0);
+            zombifiedPiglin.setPersistentAngerTarget(null);
+            logger.debug("Zombified piglin {} calmed down (no players nearby)", zombifiedPiglin.getUUID());
+            return;
+        }
+
+        // Check if we need to switch anger target
+        NearestPlayerTime currentTarget = angryPiglins.get(zombifiedPiglin.getUUID());
+        Player newTarget = currentTarget == null ? nearestPlayer : currentTarget.player();
+        long newTimeStamp = currentTarget == null ? System.currentTimeMillis() : currentTarget.timeStamp();
+        // If the nearest player is different from the current target, check if we can switch
+        if (currentTarget == null || !currentTarget.player().getUUID().equals(nearestPlayer.getUUID())) {
+            // New nearest player, check if we can switch
+            if (currentTarget == null || System.currentTimeMillis() - currentTarget.timeStamp() > config.getTargetSwitchThresholdValue(true)) { // 10 seconds threshold
+                newTarget = nearestPlayer;
+            }
+        } else if (currentTarget.player().getUUID().equals(nearestPlayer.getUUID())) {
+            // Same player, update timestamp
+            newTarget = currentTarget.player();
+            newTimeStamp = System.currentTimeMillis();
+        }
+        // Update the map
+        angryPiglins.put(zombifiedPiglin.getUUID(), new NearestPlayerTime(newTarget, newTimeStamp));
+
+        if (!zombifiedPiglin.isAngryAt(newTarget) || zombifiedPiglin.getRemainingPersistentAngerTime() < 100) {
+            var targetPlayerTime = makeHostileToPlayer(zombifiedPiglin, newTarget);
+            if (targetPlayerTime != null) {
+                logger.debug("Zombified piglin {} re-angered at player {}", zombifiedPiglin.getUUID(), targetPlayerTime.player().getUUID());
+//                angryPiglins.put(zombifiedPiglin.getUUID(), targetPlayerTime);
+            } else {
+                // No players nearby, clear anger
+                angryPiglins.remove(zombifiedPiglin.getUUID());
+                zombifiedPiglin.setRemainingPersistentAngerTime(0);
+                zombifiedPiglin.setPersistentAngerTarget(null);
+                logger.debug("Zombified piglin {} calmed down (no players nearby)", zombifiedPiglin.getUUID());
+            }
         }
 
         // Ensure anger time doesn't decrease naturally (only if configured for indefinite anger)
@@ -141,34 +212,5 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
         if (configuredDuration == -1 && zombifiedPiglin.getRemainingPersistentAngerTime() < Integer.MAX_VALUE / 2) {
             zombifiedPiglin.setRemainingPersistentAngerTime(Integer.MAX_VALUE);
         }
-    }
-
-    /**
-     * Helper method to check if this specific module is enabled.
-     */
-    private boolean isModuleEnabled() {
-        // During initialization, assume enabled if isInitialized is true
-        // After initialization, check configuration
-        if (!isInitialized()) {
-            return false;
-        }
-
-        try {
-            return config.isEnabled();
-        } catch (Exception e) {
-            // If config not available yet, return true to allow initialization
-            logger.debug("Config not available during module enabled check: {}", e.getMessage());
-            return true;
-        }
-    }
-
-    @Override
-    public boolean isEnabledByDefault() {
-        return true; // Now configurable, so can be enabled by default
-    }
-
-    @Override
-    public boolean isConfigurable() {
-        return true; // Players should be able to enable/disable this challenging feature
     }
 }

@@ -20,15 +20,15 @@ import java.util.Map;
 @EventBusSubscriber(modid = "vanillaplusadditions", bus = EventBusSubscriber.Bus.MOD)
 public class ModulesConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModulesConfig.class);
-    
+
     // Storage for registered modules
     private static final List<Module> registeredModules = new ArrayList<>();
     private static final Map<String, ModuleConfig> moduleConfigs = new HashMap<>();
-    
+
     // The configuration specification - built dynamically
     private static ModConfigSpec SPEC = null;
     private static boolean configBuilt = false;
-    
+
     /**
      * Gets the configuration specification, building it if necessary.
      */
@@ -38,7 +38,7 @@ public class ModulesConfig {
         }
         return SPEC;
     }
-    
+
     /**
      * Builds the configuration specification dynamically from all registered modules.
      */
@@ -47,10 +47,10 @@ public class ModulesConfig {
             return; // Already built
         }
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
-        
+
         builder.comment("VanillaPlusAdditions Module Configuration")
-               .push("modules");
-        
+                .push("modules");
+
         // Build configuration for each registered module
         for (Module module : registeredModules) {
             ModuleConfig config = module.getConfig();
@@ -63,27 +63,27 @@ public class ModulesConfig {
                 LOGGER.debug("Adding basic enabled config for module: {}", module.getModuleId());
                 if (module.isConfigurable()) {
                     builder.comment(String.format("Configuration for %s module", module.getDisplayName()))
-                           .push(module.getModuleId());
-                    
+                            .push(module.getModuleId());
+
                     builder.comment(String.format("Whether the %s module is enabled", module.getDisplayName()))
-                           .define("enabled", module.isEnabledByDefault());
-                    
+                            .define("enabled", module.isEnabledByDefault());
+
                     builder.pop();
                 }
             }
         }
-        
+
         builder.pop(); // Close modules section
-        
+
         SPEC = builder.build();
         configBuilt = true;
         LOGGER.debug("Built dynamic configuration with {} modules", registeredModules.size());
     }
-    
+
     /**
      * Registers a module for configuration building.
      * This must be called before the configuration is built (during mod construction).
-     * 
+     *
      * @param module The module to register
      */
     public static void registerModule(Module module) {
@@ -92,27 +92,27 @@ public class ModulesConfig {
             LOGGER.debug("Registered module for configuration: {}", module.getModuleId());
         }
     }
-    
+
     /**
      * Gets the configuration instance for a specific module.
-     * 
+     *
      * @param moduleId The module ID
      * @return The module's config instance, or null if not found
      */
     public static ModuleConfig getModuleConfig(String moduleId) {
         return moduleConfigs.get(moduleId);
     }
-    
+
     /**
      * Checks if a module is enabled according to configuration.
      * Falls back to the module's default enabled state if no config exists.
-     * 
+     *
      * @param module The module to check
      * @return true if the module should be enabled
      */
     public static boolean isModuleEnabled(Module module) {
         String moduleId = module.getModuleId();
-        
+
         // First check if the module has its own configuration
         ModuleConfig moduleConfig = module.getConfig();
         if (moduleConfig != null) {
@@ -124,13 +124,13 @@ public class ModulesConfig {
                 LOGGER.debug("Error checking custom config for module {}: {} - falling back to default", moduleId, e.getMessage());
             }
         }
-        
+
         // Fall back to module default
         boolean defaultEnabled = module.isEnabledByDefault();
         LOGGER.debug("Module {} enabled state: {} (default fallback)", moduleId, defaultEnabled);
         return defaultEnabled;
     }
-    
+
     /**
      * Handles module configuration events.
      * Called when configuration is loaded or reloaded.
@@ -140,9 +140,9 @@ public class ModulesConfig {
         if (!event.getConfig().getModId().equals("vanillaplusadditions")) {
             return;
         }
-        
+
         LOGGER.debug("VanillaPlusAdditions module configuration loaded: {}", event.getConfig().getFileName());
-        
+
         // Notify all configurable modules about the config load
         for (Module module : registeredModules) {
             ModuleConfig config = module.getConfig();
@@ -150,12 +150,12 @@ public class ModulesConfig {
                 try {
                     config.onConfigLoad(getSpec());
                 } catch (Exception e) {
-                    LOGGER.error("Error loading configuration for module {}: {}", 
-                               module.getModuleId(), e.getMessage());
+                    LOGGER.error("Error loading configuration for module {}: {}",
+                            module.getModuleId(), e.getMessage());
                 }
             }
         }
-        
+
         // Log the current module states
         LOGGER.info("Module configuration reloaded. Current states:");
         for (Module module : registeredModules) {
