@@ -47,9 +47,7 @@ public class MobGlowConfig extends AbstractModuleConfig<MobGlowModule, MobGlowCo
                 .comment("Maximum number of mobs that can be affected per command (0 for no limit)")
                 .defineInRange("max_mobs_per_command", 100, 0, Integer.MAX_VALUE);
 
-        if (shouldDebugLog()) {
-            LOGGER.debug("Built module-specific configuration for Mob Glow module");
-        }
+        LOGGER.debug("Built module-specific configuration for Mob Glow module");
     }
 
     @Override
