@@ -14,11 +14,10 @@ import org.slf4j.LoggerFactory;
 public class HostileZombifiedPiglinsConfig extends AbstractModuleConfig<HostileZombifiedPiglinsModule, HostileZombifiedPiglinsConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HostileZombifiedPiglinsConfig.class);
 
-    // Module-specific configuration values - enabled is handled by AbstractModuleConfig
+    // Module-specific configuration values - enabled and debugLogging are handled by AbstractModuleConfig
     private ModConfigSpec.IntValue detectionRange;
     private ModConfigSpec.IntValue angerDuration;
     private ModConfigSpec.DoubleValue targetSwitchThreshold;
-    private ModConfigSpec.BooleanValue debugLogging;
 
     /**
      * Creates a new HostileZombifiedPiglinsConfig.
@@ -68,10 +67,6 @@ public class HostileZombifiedPiglinsConfig extends AbstractModuleConfig<HostileZ
         targetSwitchThreshold = builder
                 .comment("Time in seconds before a zombified piglin can switch to a new nearest player target")
                 .defineInRange("target_switch_threshold", 5.0, 0.0, Double.MAX_VALUE);
-        
-        debugLogging = builder
-                .comment("Enable debug logging for this module (overrides global debug logging setting)")
-                .define("debug_logging", false);
 
         LOGGER.debug("Built module-specific configuration for Hostile Zombified Piglins module");
     }
@@ -85,7 +80,6 @@ public class HostileZombifiedPiglinsConfig extends AbstractModuleConfig<HostileZ
             LOGGER.debug("  - Detection range: {} blocks", detectionRange.get());
             LOGGER.debug("  - Anger duration: {} ticks", angerDuration.get());
             LOGGER.debug("  - Target switch threshold: {} seconds", targetSwitchThreshold.get());
-            LOGGER.debug("  - Debug logging: {}", debugLogging.get());
         }
     }
 
@@ -123,32 +117,4 @@ public class HostileZombifiedPiglinsConfig extends AbstractModuleConfig<HostileZ
         return getTargetSwitchThresholdValue(false);
     }
     
-    /**
-     * Gets the debug logging configuration value.
-     *
-     * @return The debug logging configuration value
-     */
-    public ModConfigSpec.BooleanValue getDebugLogging() {
-        return debugLogging;
-    }
-    
-    /**
-     * Gets the configured debug logging state for this module.
-     *
-     * @return true if debug logging should be enabled for this module
-     */
-    public boolean isDebugLoggingEnabled() {
-        return debugLogging != null && debugLogging.get();
-    }
-    
-    @Override
-    public boolean shouldDebugLog() {
-        // Module-specific debug logging overrides global setting
-        if (debugLogging != null) {
-            return debugLogging.get();
-        }
-        
-        // Fall back to global debug logging setting
-        return super.shouldDebugLog();
-    }
 }
