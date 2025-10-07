@@ -86,7 +86,7 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
      */
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
-        if (isModuleEnabled()) {
+        if (!isModuleEnabled()) {
             return;
         }
 

@@ -66,7 +66,7 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
      */
     @SubscribeEvent
     public void onEntityJoinLevel(EntityJoinLevelEvent event) {
-        if (isModuleEnabled()) {
+        if (!isModuleEnabled()) {
             return;
         }
 
@@ -86,7 +86,7 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
      */
     @SubscribeEvent
     public void onEntityTick(EntityTickEvent.Pre event) {
-        if (isModuleEnabled()) {
+        if (!isModuleEnabled()) {
             return;
         }
 
