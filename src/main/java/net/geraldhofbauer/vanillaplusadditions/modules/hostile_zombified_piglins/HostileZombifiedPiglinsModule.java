@@ -184,6 +184,7 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
             // New nearest player, check if we can switch
             if (currentTarget == null || System.currentTimeMillis() - currentTarget.timeStamp() > config.getTargetSwitchThresholdValue(true)) { // 10 seconds threshold
                 newTarget = nearestPlayer;
+                logger.debug("Zombified piglin {} switching anger target to player {}", zombifiedPiglin.getUUID(), newTarget.getUUID());
             }
         } else if (currentTarget.player().getUUID().equals(nearestPlayer.getUUID())) {
             // Same player, update timestamp
