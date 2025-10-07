@@ -31,12 +31,14 @@ import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
  * - Option to replace blocked skeletons with Wither Skeletons
  * - Configurable message format and replacement behavior
  */
-public class WitherSkeletonModule extends AbstractModule<WitherSkeletonModule, AbstractModuleConfig.DefaultModuleConfig<WitherSkeletonModule>> {
+public class WitherSkeletonModule
+        extends AbstractModule<WitherSkeletonModule, AbstractModuleConfig.DefaultModuleConfig<WitherSkeletonModule>> {
 
     public WitherSkeletonModule() {
         super("wither_skeleton",
                 "Wither Skeleton Enforcer",
-                "Prevents normal skeletons from spawning in the Nether and broadcasts messages about blocked spawns",
+                "Prevents normal skeletons from spawning in the Nether and broadcasts messages "
+                        + "about blocked spawns",
                 AbstractModuleConfig::createDefault
         );
     }
@@ -46,13 +48,13 @@ public class WitherSkeletonModule extends AbstractModule<WitherSkeletonModule, A
         // Register event listeners for this module
         NeoForge.EVENT_BUS.register(this);
 
-        logger.info("Wither Skeleton module initialized - Normal skeletons are now banned from the Nether!");
+        getLogger().info("Wither Skeleton module initialized - Normal skeletons are now banned from the Nether!");
     }
 
     @Override
     protected void onCommonSetup() {
-        if (config.shouldDebugLog()) {
-            logger.debug("Wither Skeleton module common setup complete");
+        if (getConfig().shouldDebugLog()) {
+            getLogger().debug("Wither Skeleton module common setup complete");
         }
     }
 
@@ -86,8 +88,8 @@ public class WitherSkeletonModule extends AbstractModule<WitherSkeletonModule, A
         }
 
         // This is a normal skeleton trying to spawn in the Nether - block it!
-        if (config.shouldDebugLog()) {
-            logger.debug("Blocked normal skeleton spawn in Nether at {}", event.getEntity().blockPosition());
+        if (getConfig().shouldDebugLog()) {
+            getLogger().debug("Blocked normal skeleton spawn in Nether at {}", event.getEntity().blockPosition());
         }
 
         // Cancel the spawn
@@ -106,7 +108,8 @@ public class WitherSkeletonModule extends AbstractModule<WitherSkeletonModule, A
     private void broadcastSkeletonBlockedMessage(ServerLevel level, BlockPos position) {
         Component message = Component.literal("🔥 A normal skeleton tried to spawn in the Nether but was blocked! 🔥")
                 .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
-                .append(Component.literal("\nLocation: " + position.getX() + ", " + position.getY() + ", " + position.getZ())
+                .append(Component.literal("\nLocation: " + position.getX() + ", " + position.getY()
+                                + ", " + position.getZ())
                         .withStyle(ChatFormatting.YELLOW));
 
         // Send to all players on the server
@@ -114,8 +117,8 @@ public class WitherSkeletonModule extends AbstractModule<WitherSkeletonModule, A
             player.sendSystemMessage(message);
         }
 
-        if (config.shouldDebugLog()) {
-            logger.info("Broadcasted skeleton block message for spawn at {}", position);
+        if (getConfig().shouldDebugLog()) {
+            getLogger().info("Broadcasted skeleton block message for spawn at {}", position);
         }
     }
 
@@ -127,7 +130,7 @@ public class WitherSkeletonModule extends AbstractModule<WitherSkeletonModule, A
             // Create a new Wither Skeleton at the same position
             WitherSkeleton witherSkeleton = EntityType.WITHER_SKELETON.create(level);
             if (witherSkeleton == null) {
-                logger.warn("Failed to create Wither Skeleton replacement");
+                getLogger().warn("Failed to create Wither Skeleton replacement");
                 return;
             }
 
@@ -142,12 +145,13 @@ public class WitherSkeletonModule extends AbstractModule<WitherSkeletonModule, A
             // Add the Wither Skeleton to the world
             level.addFreshEntity(witherSkeleton);
 
-            if (config.shouldDebugLog()) {
-                logger.debug("Replaced blocked skeleton with Wither Skeleton at {}", witherSkeleton.blockPosition());
+            if (getConfig().shouldDebugLog()) {
+                getLogger().debug("Replaced blocked skeleton with Wither Skeleton at {}",
+                        witherSkeleton.blockPosition());
             }
 
         } catch (Exception e) {
-            logger.error("Failed to replace skeleton with Wither Skeleton", e);
+            getLogger().error("Failed to replace skeleton with Wither Skeleton", e);
         }
     }
 }

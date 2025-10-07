@@ -1,7 +1,6 @@
 package net.geraldhofbauer.vanillaplusadditions.modules.mob_glow;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -17,7 +16,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -27,7 +25,11 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -53,7 +55,8 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
     private static final SuggestionProvider<CommandSourceStack> ENTITY_TYPE_SUGGESTIONS = (context, builder) -> {
         return SharedSuggestionProvider.suggestResource(
                 BuiltInRegistries.ENTITY_TYPE.keySet().stream()
-                        .filter(resourceLocation -> BuiltInRegistries.ENTITY_TYPE.get(resourceLocation) != EntityType.PLAYER), // Exclude players
+                        .filter(resourceLocation -> BuiltInRegistries.ENTITY_TYPE.get(resourceLocation)
+                                != EntityType.PLAYER), // Exclude players
                 builder
         );
     };
@@ -71,13 +74,13 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
         // Register event listeners for this module
         NeoForge.EVENT_BUS.register(this);
 
-        logger.info("Mob Glow module initialized - /mobglow command ready!");
+        getLogger().info("Mob Glow module initialized - /mobglow command ready!");
     }
 
     @Override
     protected void onCommonSetup() {
-        if (config.shouldDebugLog()) {
-            logger.debug("Mob Glow module common setup complete");
+        if (getConfig().shouldDebugLog()) {
+            getLogger().debug("Mob Glow module common setup complete");
         }
     }
 
@@ -92,13 +95,14 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
 
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
 
-        if (config.shouldDebugLog()) {
-            logger.debug("Registering /mobglow command");
+        if (getConfig().shouldDebugLog()) {
+            getLogger().debug("Registering /mobglow command");
         }
 
         dispatcher.register(
                 Commands.literal("mobglow")
-                        .requires(source -> !config.getRequireOpValue() || source.hasPermission(2)) // OP level 2 required by default
+                        .requires(source -> !getConfig().getRequireOpValue()
+                                || source.hasPermission(2)) // OP level 2 required by default
                         .then(Commands.literal("all")
                                 .then(Commands.literal("clear")
                                         .executes(this::executeClearAllGlow)
@@ -116,8 +120,8 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
                         )
         );
 
-        if (config.shouldDebugLog()) {
-            logger.debug("Successfully registered /mobglow command");
+        if (getConfig().shouldDebugLog()) {
+            getLogger().debug("Successfully registered /mobglow command");
         }
     }
 
@@ -144,8 +148,8 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
     private int executeClearAllGlow(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
         
-        if (config.shouldDebugLog()) {
-            logger.debug("Executing /mobglow all clear command");
+        if (getConfig().shouldDebugLog()) {
+            getLogger().debug("Executing /mobglow all clear command");
         }
         
         int clearedCount = clearGlowEffects(source, null);
@@ -177,17 +181,19 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
         
         EntityType<?> entityType = BuiltInRegistries.ENTITY_TYPE.get(entityTypeId);
         
-        if (config.shouldDebugLog()) {
-            logger.debug("Executing /mobglow {} clear command", entityTypeId);
+        if (getConfig().shouldDebugLog()) {
+            getLogger().debug("Executing /mobglow {} clear command", entityTypeId);
         }
         
         int clearedCount = clearGlowEffects(source, entityType);
         
         if (clearedCount == 0) {
-            source.sendSuccess(() -> Component.literal("No glowing " + entityTypeId + " entities found to clear")
+            source.sendSuccess(() -> Component.literal("No glowing " + entityTypeId
+                            + " entities found to clear")
                     .withStyle(ChatFormatting.YELLOW), true);
         } else {
-            source.sendSuccess(() -> Component.literal("Cleared glow effect from " + clearedCount + " " + entityTypeId + " entities")
+            source.sendSuccess(() -> Component.literal("Cleared glow effect from " + clearedCount
+                            + " " + entityTypeId + " entities")
                     .withStyle(ChatFormatting.GREEN), true);
         }
         
@@ -197,7 +203,8 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
     /**
      * Main execution logic for the mobglow command
      */
-    private int executeMobGlow(CommandContext<CommandSourceStack> context, ResourceLocation entityTypeId, String durationStr) throws CommandSyntaxException {
+    private int executeMobGlow(CommandContext<CommandSourceStack> context, ResourceLocation entityTypeId,
+            String durationStr) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
         
         // Validate entity type
@@ -219,7 +226,7 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
         boolean isInfinite = false;
         
         if ("infinite".equalsIgnoreCase(durationStr)) {
-            int configDefault = config.getDefaultDurationValue();
+            int configDefault = getConfig().getDefaultDurationValue();
             if (configDefault == -1) {
                 durationTicks = Integer.MAX_VALUE;
                 isInfinite = true;
@@ -231,7 +238,7 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
                 int durationSeconds = Integer.parseInt(durationStr);
                 
                 // Check maximum duration limit
-                int maxDuration = config.getMaxDurationValue();
+                int maxDuration = getConfig().getMaxDurationValue();
                 if (maxDuration > 0 && durationSeconds > maxDuration) {
                     source.sendFailure(Component.literal("Duration cannot exceed " + maxDuration + " seconds")
                             .withStyle(ChatFormatting.RED));
@@ -240,21 +247,22 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
                 
                 durationTicks = durationSeconds * 20; // Convert seconds to ticks
             } catch (NumberFormatException e) {
-                source.sendFailure(Component.literal("Invalid duration: " + durationStr + ". Use a number or 'infinite'")
+                source.sendFailure(Component.literal("Invalid duration: " + durationStr
+                                + ". Use a number or 'infinite'")
                         .withStyle(ChatFormatting.RED));
                 return 0;
             }
         }
 
-        if (config.shouldDebugLog()) {
-            logger.debug("Executing /mobglow command: entity_type={}, duration={} ({}ticks, infinite={})", 
+        if (getConfig().shouldDebugLog()) {
+            getLogger().debug("Executing /mobglow command: entity_type={}, duration={} ({}ticks, infinite={})",
                     entityTypeId, durationStr, durationTicks, isInfinite);
         }
 
         // Apply glow effect to all matching entities
         AtomicInteger changedCount = new AtomicInteger(0);
         AtomicInteger totalWithEffectCount = new AtomicInteger(0);
-        int maxMobs = config.getMaxMobsPerCommandValue();
+        int maxMobs = getConfig().getMaxMobsPerCommandValue();
         
         if (source.getLevel() instanceof ServerLevel serverLevel) {
             serverLevel.getAllEntities().forEach(entity -> {
@@ -262,7 +270,8 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
                     boolean hadGlowEffect = livingEntity.hasEffect(MobEffects.GLOWING);
                     
                     // Apply glowing effect
-                    MobEffectInstance glowEffect = new MobEffectInstance(MobEffects.GLOWING, durationTicks, 0, false, true);
+                    MobEffectInstance glowEffect = new MobEffectInstance(MobEffects.GLOWING,
+                            durationTicks, 0, false, true);
                     livingEntity.addEffect(glowEffect);
                     
                     // Track this mob
@@ -273,8 +282,9 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
                     if (!hadGlowEffect && (maxMobs == 0 || changedCount.get() < maxMobs)) {
                         changedCount.incrementAndGet();
                         
-                        if (config.shouldDebugLog()) {
-                            logger.debug("Applied glow effect to {} at {}", entityType.getDescriptionId(), entity.blockPosition());
+                        if (getConfig().shouldDebugLog()) {
+                            getLogger().debug("Applied glow effect to {} at {}",
+                                    entityType.getDescriptionId(), entity.blockPosition());
                         }
                     }
                 }
@@ -283,25 +293,32 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
 
         // Send result message
         if (totalWithEffectCount.get() == 0) {
-            source.sendSuccess(() -> Component.literal("No " + entityTypeId + " entities found to apply glow effect")
+            source.sendSuccess(() -> Component.literal("No " + entityTypeId
+                            + " entities found to apply glow effect")
                     .withStyle(ChatFormatting.YELLOW), true);
         } else {
             String durationText = isInfinite ? "indefinitely" : "for " + (durationTicks / 20) + " seconds";
             if (changedCount.get() == 0) {
-                source.sendSuccess(() -> Component.literal("All " + totalWithEffectCount.get() + " " + entityTypeId + " entities already have glow effect")
+                source.sendSuccess(() -> Component.literal("All " + totalWithEffectCount.get() + " "
+                                + entityTypeId + " entities already have glow effect")
                         .withStyle(ChatFormatting.YELLOW), true);
             } else {
                 String message;
                 if (changedCount.get() == totalWithEffectCount.get()) {
-                    message = "Applied glow effect to " + changedCount.get() + " " + entityTypeId + " entities " + durationText;
+                    message = "Applied glow effect to " + changedCount.get() + " " + entityTypeId
+                            + " entities " + durationText;
                 } else {
-                    message = "Applied glow effect to " + changedCount.get() + " new " + entityTypeId + " entities " + durationText + " (" + totalWithEffectCount.get() + " total now glowing)";
+                    message = "Applied glow effect to " + changedCount.get() + " new " + entityTypeId
+                            + " entities " + durationText + " ("
+                            + totalWithEffectCount.get()
+                            + " total now glowing)";
                 }
                 source.sendSuccess(() -> Component.literal(message).withStyle(ChatFormatting.GREEN), true);
             }
             
-            if (config.shouldDebugLog()) {
-                logger.debug("Successfully applied glow effect: {} changed, {} total of type {}", changedCount.get(), totalWithEffectCount.get(), entityTypeId);
+            if (getConfig().shouldDebugLog()) {
+                getLogger().debug("Successfully applied glow effect: {} changed, {} total of type {}",
+                        changedCount.get(), totalWithEffectCount.get(), entityTypeId);
             }
         }
 
@@ -332,13 +349,15 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
                 
                 // Find the entity in the world
                 Entity entity = serverLevel.getEntity(mobUUID);
-                if (entity instanceof LivingEntity livingEntity && livingEntity.hasEffect(MobEffects.GLOWING)) {
+                if (entity instanceof LivingEntity livingEntity
+                        && livingEntity.hasEffect(MobEffects.GLOWING)) {
                     // Remove the glow effect
                     livingEntity.removeEffect(MobEffects.GLOWING);
                     clearedCount.incrementAndGet();
                     
-                    if (config.shouldDebugLog()) {
-                        logger.debug("Removed glow effect from {} at {}", trackedType.getDescriptionId(), entity.blockPosition());
+                    if (getConfig().shouldDebugLog()) {
+                        getLogger().debug("Removed glow effect from {} at {}",
+                                trackedType.getDescriptionId(), entity.blockPosition());
                     }
                 }
                 
@@ -351,8 +370,8 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
             cleanupDeadReferences(serverLevel);
         }
         
-        if (config.shouldDebugLog()) {
-            logger.debug("Cleared glow effects from {} entities", clearedCount.get());
+        if (getConfig().shouldDebugLog()) {
+            getLogger().debug("Cleared glow effects from {} entities", clearedCount.get());
         }
         
         return clearedCount.get();
@@ -375,8 +394,8 @@ public class MobGlowModule extends AbstractModule<MobGlowModule, MobGlowConfig> 
             trackedGlowingMobs.remove(deadMob);
         }
         
-        if (config.shouldDebugLog() && !deadMobs.isEmpty()) {
-            logger.debug("Cleaned up {} dead entity references from tracking", deadMobs.size());
+        if (getConfig().shouldDebugLog() && !deadMobs.isEmpty()) {
+            getLogger().debug("Cleaned up {} dead entity references from tracking", deadMobs.size());
         }
     }
 }

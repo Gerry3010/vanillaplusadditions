@@ -18,18 +18,21 @@ import java.util.Map;
  * for modules, including the ability to enable/disable them.
  */
 @EventBusSubscriber(modid = "vanillaplusadditions", bus = EventBusSubscriber.Bus.MOD)
-public class ModulesConfig {
+public final class ModulesConfig {
+    private ModulesConfig() {
+        // Utility class - prevent instantiation
+    }
     private static final Logger LOGGER = LoggerFactory.getLogger(ModulesConfig.class);
 
     // Storage for registered modules
-    private static final List<Module> registeredModules = new ArrayList<>();
-    private static final Map<String, ModuleConfig> moduleConfigs = new HashMap<>();
+    private static final List<Module> REGISTERED_MODULES = new ArrayList<>();
+    private static final Map<String, ModuleConfig> MODULE_CONFIGS = new HashMap<>();
 
     // Global debug logging configuration
     private static ModConfigSpec.BooleanValue globalDebugLogging;
     
     // The configuration specification - built dynamically
-    private static ModConfigSpec SPEC = null;
+    private static ModConfigSpec spec = null;
     private static boolean configBuilt = false;
 
     /**
@@ -39,7 +42,7 @@ public class ModulesConfig {
         if (!configBuilt) {
             buildConfig();
         }
-        return SPEC;
+        return spec;
     }
 
     /**
@@ -61,12 +64,12 @@ public class ModulesConfig {
         builder.push("modules");
 
         // Build configuration for each registered module
-        for (Module module : registeredModules) {
+        for (Module module : REGISTERED_MODULES) {
             ModuleConfig config = module.getConfig();
             if (config != null) {
                 LOGGER.debug("Building configuration for module: {}", module.getModuleId());
                 config.buildConfig(builder);
-                moduleConfigs.put(module.getModuleId(), config);
+                MODULE_CONFIGS.put(module.getModuleId(), config);
             } else {
                 // Module has no configuration, add basic enabled/disabled option
                 LOGGER.debug("Adding basic enabled config for module: {}", module.getModuleId());
@@ -84,9 +87,9 @@ public class ModulesConfig {
 
         builder.pop(); // Close modules section
 
-        SPEC = builder.build();
+        spec = builder.build();
         configBuilt = true;
-        LOGGER.debug("Built dynamic configuration with {} modules", registeredModules.size());
+        LOGGER.debug("Built dynamic configuration with {} modules", REGISTERED_MODULES.size());
     }
 
     /**
@@ -96,8 +99,8 @@ public class ModulesConfig {
      * @param module The module to register
      */
     public static void registerModule(Module module) {
-        if (!registeredModules.contains(module)) {
-            registeredModules.add(module);
+        if (!REGISTERED_MODULES.contains(module)) {
+            REGISTERED_MODULES.add(module);
             LOGGER.debug("Registered module for configuration: {}", module.getModuleId());
         }
     }
@@ -109,7 +112,7 @@ public class ModulesConfig {
      * @return The module's config instance, or null if not found
      */
     public static ModuleConfig getModuleConfig(String moduleId) {
-        return moduleConfigs.get(moduleId);
+        return MODULE_CONFIGS.get(moduleId);
     }
 
     /**
@@ -130,7 +133,8 @@ public class ModulesConfig {
                 LOGGER.debug("Module {} enabled state: {} (from custom config)", moduleId, enabled);
                 return enabled;
             } catch (Exception e) {
-                LOGGER.debug("Error checking custom config for module {}: {} - falling back to default", moduleId, e.getMessage());
+                LOGGER.debug("Error checking custom config for module {}: {} - falling back to default",
+                        moduleId, e.getMessage());
             }
         }
 
@@ -162,7 +166,7 @@ public class ModulesConfig {
         LOGGER.debug("VanillaPlusAdditions module configuration loaded: {}", event.getConfig().getFileName());
 
         // Notify all configurable modules about the config load
-        for (Module module : registeredModules) {
+        for (Module module : REGISTERED_MODULES) {
             ModuleConfig config = module.getConfig();
             if (config != null) {
                 try {
@@ -176,7 +180,7 @@ public class ModulesConfig {
 
         // Log the current module states
         LOGGER.info("Module configuration reloaded. Current states:");
-        for (Module module : registeredModules) {
+        for (Module module : REGISTERED_MODULES) {
             boolean enabled = isModuleEnabled(module);
             LOGGER.info("  - {}: {}", module.getModuleId(), enabled ? "ENABLED" : "DISABLED");
         }

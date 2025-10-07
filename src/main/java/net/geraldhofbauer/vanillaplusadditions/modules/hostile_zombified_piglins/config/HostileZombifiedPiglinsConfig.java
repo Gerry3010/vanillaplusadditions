@@ -1,7 +1,6 @@
 package net.geraldhofbauer.vanillaplusadditions.modules.hostile_zombified_piglins.config;
 
 import net.geraldhofbauer.vanillaplusadditions.core.AbstractModuleConfig;
-import net.geraldhofbauer.vanillaplusadditions.core.Module;
 import net.geraldhofbauer.vanillaplusadditions.modules.hostile_zombified_piglins.HostileZombifiedPiglinsModule;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.slf4j.Logger;
@@ -11,7 +10,8 @@ import org.slf4j.LoggerFactory;
  * Configuration class for the Hostile Zombified Piglins module.
  * This class handles all configuration options specific to making zombified piglins hostile.
  */
-public class HostileZombifiedPiglinsConfig extends AbstractModuleConfig<HostileZombifiedPiglinsModule, HostileZombifiedPiglinsConfig> {
+public class HostileZombifiedPiglinsConfig
+        extends AbstractModuleConfig<HostileZombifiedPiglinsModule, HostileZombifiedPiglinsConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HostileZombifiedPiglinsConfig.class);
 
     // Module-specific configuration values - enabled and debugLogging are handled by AbstractModuleConfig
@@ -52,7 +52,9 @@ public class HostileZombifiedPiglinsConfig extends AbstractModuleConfig<HostileZ
      *
      * @return The target switch threshold configuration value
      */
-    public ModConfigSpec.DoubleValue getTargetSwitchThreshold() { return targetSwitchThreshold; }
+    public ModConfigSpec.DoubleValue getTargetSwitchThreshold() {
+        return targetSwitchThreshold;
+    }
 
     @Override
     protected void buildModuleSpecificConfig(ModConfigSpec.Builder builder) {

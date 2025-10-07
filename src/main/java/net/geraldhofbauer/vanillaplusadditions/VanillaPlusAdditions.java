@@ -45,8 +45,9 @@ public class VanillaPlusAdditions {
         // All item/block registration is now handled by individual modules
 
         // Register ourselves for server and other game events we are interested in.
-        // Note that this is necessary if and only if we want *this* class (VanillaPlusAdditions) to respond directly to events.
-        // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
+        // Note that this is necessary if and only if we want *this* class (VanillaPlusAdditions)
+        // to respond directly to events. Do not add this line if there are no @SubscribeEvent-annotated
+        // functions in this class, like onServerStarting() below.
         NeoForge.EVENT_BUS.register(this);
 
         // Creative tab handling is now managed by individual modules
@@ -88,7 +89,7 @@ public class VanillaPlusAdditions {
         }
 
         LOGGER.info("VanillaPlusAdditions common setup complete with {} enabled modules",
-                ModuleManager.getInstance().getEnabledModules().size());
+                    ModuleManager.getInstance().getEnabledModules().size());
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -98,7 +99,8 @@ public class VanillaPlusAdditions {
         LOGGER.info("HELLO from server starting");
     }
 
-    // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
+    // You can use EventBusSubscriber to automatically register all static methods in the class
+    // annotated with @SubscribeEvent
     @EventBusSubscriber(modid = VanillaPlusAdditions.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     static class ClientModEvents {
         @SubscribeEvent
@@ -111,7 +113,7 @@ public class VanillaPlusAdditions {
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
 
             LOGGER.info("VanillaPlusAdditions client setup complete with {} enabled modules",
-                    ModuleManager.getInstance().getEnabledModules().size());
+                        ModuleManager.getInstance().getEnabledModules().size());
         }
     }
 }

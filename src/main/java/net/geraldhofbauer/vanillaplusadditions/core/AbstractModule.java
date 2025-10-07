@@ -13,14 +13,14 @@ import java.util.function.Function;
  * Extends this class to create new modules with less boilerplate.
  */
 public abstract class AbstractModule<M extends Module, C extends ModuleConfig> implements Module {
-    protected final Logger logger;
-    protected final String moduleId;
-    protected final String displayName;
-    protected final String description;
-    protected final C config;
+    private final Logger logger;
+    private final String moduleId;
+    private final String displayName;
+    private final String description;
+    private final C config;
 
-    protected IEventBus modEventBus;
-    protected ModContainer modContainer;
+    private IEventBus modEventBus;
+    private ModContainer modContainer;
 
     /**
      * Creates a new abstract module.
@@ -50,6 +50,25 @@ public abstract class AbstractModule<M extends Module, C extends ModuleConfig> i
 
     protected Function<M, DefaultModuleConfig<M>> getDefaultConfigInitializer() {
         return AbstractModuleConfig::createDefault;
+    }
+
+    /**
+     * Gets the logger instance for this module.
+     * 
+     * @return The logger instance
+     */
+    protected final Logger getLogger() {
+        return logger;
+    }
+
+    /**
+     * Gets the configuration instance for this module.
+     * 
+     * @return The configuration instance
+     */
+    @Override
+    public final C getConfig() {
+        return config;
     }
 
     @Override
@@ -149,10 +168,6 @@ public abstract class AbstractModule<M extends Module, C extends ModuleConfig> i
         return modContainer;
     }
 
-    @Override
-    public C getConfig() {
-        return config;
-    }
 
     /**
      * Helper method to check if this specific module is enabled.

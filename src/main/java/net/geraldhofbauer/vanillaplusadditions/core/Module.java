@@ -1,6 +1,5 @@
 package net.geraldhofbauer.vanillaplusadditions.core;
 
-import net.geraldhofbauer.vanillaplusadditions.Config;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 

@@ -1,36 +1,39 @@
 package net.geraldhofbauer.vanillaplusadditions.core;
 
-import net.geraldhofbauer.vanillaplusadditions.VanillaPlusAdditions;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages the lifecycle and registration of all VanillaPlusAdditions modules.
  * This class handles module discovery, initialization, and configuration.
  */
-public class ModuleManager {
+public final class ModuleManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModuleManager.class);
     
-    private static ModuleManager instance;
+    private static volatile ModuleManager instance;
     private final Map<String, Module> registeredModules = new ConcurrentHashMap<>();
     private final Map<String, Boolean> moduleEnabledState = new ConcurrentHashMap<>();
     private final List<Module> enabledModules = new ArrayList<>();
     
     private boolean initialized = false;
     
-    private ModuleManager() {}
+    private ModuleManager() { }
     
     /**
      * Gets the singleton instance of the ModuleManager.
      * 
      * @return The ModuleManager instance
      */
-    public static ModuleManager getInstance() {
+    public static synchronized ModuleManager getInstance() {
         if (instance == null) {
             instance = new ModuleManager();
         }

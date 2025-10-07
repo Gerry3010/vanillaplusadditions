@@ -1,7 +1,6 @@
 package net.geraldhofbauer.vanillaplusadditions.modules.mob_glow.config;
 
 import net.geraldhofbauer.vanillaplusadditions.core.AbstractModuleConfig;
-import net.geraldhofbauer.vanillaplusadditions.core.Module;
 import net.geraldhofbauer.vanillaplusadditions.modules.mob_glow.MobGlowModule;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.slf4j.Logger;
@@ -32,7 +31,8 @@ public class MobGlowConfig extends AbstractModuleConfig<MobGlowModule, MobGlowCo
     @Override
     protected void buildModuleSpecificConfig(ModConfigSpec.Builder builder) {
         defaultDuration = builder
-                .comment("Default duration in seconds for glow effect when 'infinite' is specified (-1 for truly infinite)")
+                .comment("Default duration in seconds for glow effect when 'infinite' is specified "
+                        + "(-1 for truly infinite)")
                 .defineInRange("default_duration", -1, -1, Integer.MAX_VALUE);
 
         maxDuration = builder

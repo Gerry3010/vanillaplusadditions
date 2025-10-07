@@ -31,8 +31,8 @@ public abstract class AbstractModuleConfig<M extends Module, C extends ModuleCon
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractModuleConfig.class);
     
     // Standard configuration values that all modules have
-    protected ModConfigSpec.BooleanValue enabled;
-    protected ModConfigSpec.EnumValue<DebugLoggingMode> debugLogging;
+    private ModConfigSpec.BooleanValue enabled;
+    private ModConfigSpec.EnumValue<DebugLoggingMode> debugLogging;
     
     // Module reference for getting default values
     private final M module;
@@ -60,7 +60,9 @@ public abstract class AbstractModuleConfig<M extends Module, C extends ModuleCon
             .define("enabled", module.isEnabledByDefault());
         
         debugLogging = builder
-            .comment(String.format("Debug logging mode for the %s module (AUTO = use global setting, ON = force enable, OFF = force disable)", displayName))
+            .comment(String.format("Debug logging mode for the %s module "
+                            + "(AUTO = use global setting, ON = force enable, OFF = force disable)",
+                    displayName))
             .defineEnum("debug_logging", DebugLoggingMode.AUTO);
         
         // Allow subclasses to add their own configuration
@@ -85,8 +87,8 @@ public abstract class AbstractModuleConfig<M extends Module, C extends ModuleCon
     public void onConfigLoad(ModConfigSpec spec) {
         // Default implementation - subclasses can override if needed
         if (enabled != null && debugLogging != null) {
-            LOGGER.debug("Configuration loaded for module: {} - enabled: {}, debug logging: {}", 
-                        getConfigSectionName(), enabled.get(), debugLogging.get());
+            LOGGER.debug("Configuration loaded for module: {} - enabled: {}, debug logging: {}",
+                    getConfigSectionName(), enabled.get(), debugLogging.get());
         }
     }
     
@@ -197,7 +199,8 @@ public abstract class AbstractModuleConfig<M extends Module, C extends ModuleCon
         return new DefaultModuleConfig<>(module);
     }
 
-    public static class DefaultModuleConfig<MO extends Module> extends AbstractModuleConfig<MO, DefaultModuleConfig<MO>> {
+    public static class DefaultModuleConfig<MO extends Module>
+            extends AbstractModuleConfig<MO, DefaultModuleConfig<MO>> {
         DefaultModuleConfig(MO module) {
             super(module);
         }
