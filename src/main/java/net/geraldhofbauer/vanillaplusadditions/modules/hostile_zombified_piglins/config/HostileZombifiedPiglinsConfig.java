@@ -62,7 +62,7 @@ public class HostileZombifiedPiglinsConfig extends AbstractModuleConfig<HostileZ
 
         angerDuration = builder
                 .comment("How long zombified piglins stay angry in ticks (-1 for indefinite)")
-                .defineInRange("anger_duration", -1, -1, Integer.MAX_VALUE);
+                .defineInRange("anger_duration", 200, -1, Integer.MAX_VALUE);
 
         targetSwitchThreshold = builder
                 .comment("Time in seconds before a zombified piglin can switch to a new nearest player target")
@@ -99,7 +99,7 @@ public class HostileZombifiedPiglinsConfig extends AbstractModuleConfig<HostileZ
      * @return anger duration in ticks, or default value if not configured
      */
     public int getAngerDurationValue() {
-        return angerDuration != null ? angerDuration.get() : -1;
+        return angerDuration != null ? angerDuration.get() : 200;
     }
 
     /**
