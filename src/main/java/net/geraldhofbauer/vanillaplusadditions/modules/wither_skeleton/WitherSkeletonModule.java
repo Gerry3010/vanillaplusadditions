@@ -104,17 +104,17 @@ public class WitherSkeletonModule extends AbstractModule<WitherSkeletonModule, A
      * Broadcasts a message to all players about the blocked skeleton spawn
      */
     private void broadcastSkeletonBlockedMessage(ServerLevel level, BlockPos position) {
-        Component message = Component.literal("🔥 A normal skeleton tried to spawn in the Nether but was blocked! 🔥")
-                .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
-                .append(Component.literal("\nLocation: " + position.getX() + ", " + position.getY() + ", " + position.getZ())
-                        .withStyle(ChatFormatting.YELLOW));
-
-        // Send to all players on the server
-        for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
-            player.sendSystemMessage(message);
-        }
-
         if (config.shouldDebugLog()) {
+            Component message = Component.literal("🔥 A normal skeleton tried to spawn in the Nether but was blocked! 🔥")
+                    .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
+                    .append(Component.literal("\nLocation: " + position.getX() + ", " + position.getY() + ", " + position.getZ())
+                            .withStyle(ChatFormatting.YELLOW));
+
+            // Send to all players on the server
+            for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
+                player.sendSystemMessage(message);
+            }
+
             logger.info("Broadcasted skeleton block message for spawn at {}", position);
         }
     }
