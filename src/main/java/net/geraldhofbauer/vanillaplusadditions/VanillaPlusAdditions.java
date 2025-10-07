@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import net.geraldhofbauer.vanillaplusadditions.core.ModuleManager;
 import net.geraldhofbauer.vanillaplusadditions.core.ModulesConfig;
 import net.geraldhofbauer.vanillaplusadditions.modules.hostile_zombified_piglins.HostileZombifiedPiglinsModule;
+import net.geraldhofbauer.vanillaplusadditions.modules.wither_skeleton.WitherSkeletonModule;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -65,6 +66,7 @@ public class VanillaPlusAdditions {
 
         // Register all available modules
         moduleManager.registerModule(new HostileZombifiedPiglinsModule());
+        moduleManager.registerModule(new WitherSkeletonModule());
 
         LOGGER.info("Registered {} modules", moduleManager.getAllModules().size());
     }
