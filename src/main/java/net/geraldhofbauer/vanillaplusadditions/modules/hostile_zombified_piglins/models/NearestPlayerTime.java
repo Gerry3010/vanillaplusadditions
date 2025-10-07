@@ -1,9 +1,7 @@
-package net.geraldhofbauer.vanillaplusadditions.modules.hostile_zombified_piglins;
+package net.geraldhofbauer.vanillaplusadditions.modules.hostile_zombified_piglins.models;
 
 
 import net.minecraft.world.entity.player.Player;
-
-import java.util.Date;
 
 public record NearestPlayerTime(Player player, long timeStamp) implements Comparable<NearestPlayerTime> {
     @Override

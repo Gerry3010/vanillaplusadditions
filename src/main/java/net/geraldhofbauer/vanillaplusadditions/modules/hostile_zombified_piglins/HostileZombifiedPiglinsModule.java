@@ -2,6 +2,7 @@ package net.geraldhofbauer.vanillaplusadditions.modules.hostile_zombified_piglin
 
 import net.geraldhofbauer.vanillaplusadditions.core.AbstractModule;
 import net.geraldhofbauer.vanillaplusadditions.modules.hostile_zombified_piglins.config.HostileZombifiedPiglinsConfig;
+import net.geraldhofbauer.vanillaplusadditions.modules.hostile_zombified_piglins.models.NearestPlayerTime;
 import net.minecraft.world.entity.monster.ZombifiedPiglin;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
