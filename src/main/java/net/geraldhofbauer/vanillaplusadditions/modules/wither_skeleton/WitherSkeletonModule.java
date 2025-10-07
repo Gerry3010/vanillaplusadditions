@@ -51,7 +51,9 @@ public class WitherSkeletonModule extends AbstractModule<WitherSkeletonModule, A
 
     @Override
     protected void onCommonSetup() {
-        logger.debug("Wither Skeleton module common setup complete");
+        if (config.shouldDebugLog()) {
+            logger.debug("Wither Skeleton module common setup complete");
+        }
     }
 
     /**
@@ -84,7 +86,9 @@ public class WitherSkeletonModule extends AbstractModule<WitherSkeletonModule, A
         }
 
         // This is a normal skeleton trying to spawn in the Nether - block it!
-        logger.debug("Blocked normal skeleton spawn in Nether at {}", event.getEntity().blockPosition());
+        if (config.shouldDebugLog()) {
+            logger.debug("Blocked normal skeleton spawn in Nether at {}", event.getEntity().blockPosition());
+        }
 
         // Cancel the spawn
         event.setSpawnCancelled(true);
@@ -110,7 +114,9 @@ public class WitherSkeletonModule extends AbstractModule<WitherSkeletonModule, A
             player.sendSystemMessage(message);
         }
 
-        logger.info("Broadcasted skeleton block message for spawn at {}", position);
+        if (config.shouldDebugLog()) {
+            logger.info("Broadcasted skeleton block message for spawn at {}", position);
+        }
     }
 
     /**
@@ -136,7 +142,9 @@ public class WitherSkeletonModule extends AbstractModule<WitherSkeletonModule, A
             // Add the Wither Skeleton to the world
             level.addFreshEntity(witherSkeleton);
 
-            logger.debug("Replaced blocked skeleton with Wither Skeleton at {}", witherSkeleton.blockPosition());
+            if (config.shouldDebugLog()) {
+                logger.debug("Replaced blocked skeleton with Wither Skeleton at {}", witherSkeleton.blockPosition());
+            }
 
         } catch (Exception e) {
             logger.error("Failed to replace skeleton with Wither Skeleton", e);

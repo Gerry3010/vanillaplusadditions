@@ -112,6 +112,22 @@ public abstract class AbstractModuleConfig<M extends Module, C extends ModuleCon
     }
     
     /**
+     * Checks if debug logging should be enabled for this module.
+     * This combines global and module-specific debug logging settings.
+     * Module-specific settings override the global setting.
+     * 
+     * @return true if debug logging should be enabled
+     */
+    public boolean shouldDebugLog() {
+        // Check if global debug logging is enabled
+        boolean globalDebug = ModulesConfig.isGlobalDebugLoggingEnabled();
+        
+        // Module-specific debug logging can override the global setting
+        // Subclasses should override this method if they have module-specific debug logging
+        return globalDebug;
+    }
+    
+    /**
      * Creates a default module configuration instance that only provides
      * the standard enabled/disabled functionality.
      * <p>

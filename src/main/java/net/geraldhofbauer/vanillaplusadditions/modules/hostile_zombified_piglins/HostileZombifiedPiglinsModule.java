@@ -56,7 +56,9 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
 
     @Override
     protected void onCommonSetup() {
-        logger.debug("Hostile Zombified Piglins module common setup complete");
+        if (config.shouldDebugLog()) {
+            logger.debug("Hostile Zombified Piglins module common setup complete");
+        }
     }
 
     /**
@@ -73,7 +75,9 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
             // Make it angry at all nearby players immediately
             angryPiglins.put(zombifiedPiglin.getUUID(), makeHostileToPlayer(zombifiedPiglin, null));
 
-            logger.debug("Made zombified piglin hostile at spawn: {}", zombifiedPiglin.getUUID());
+            if (config.shouldDebugLog()) {
+                logger.debug("Made zombified piglin hostile at spawn: {}", zombifiedPiglin.getUUID());
+            }
         }
     }
 
@@ -109,7 +113,9 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
             var nearbyPlayers = getNearbyPlayers(zombifiedPiglin);
             if (nearbyPlayers == null) return null;
             // Set the first player as the persistent anger target
-            this.logger.debug("Found {} nearby players for zombified piglin {}", nearbyPlayers.size(), zombifiedPiglin.getUUID());
+            if (config.shouldDebugLog()) {
+                this.logger.debug("Found {} nearby players for zombified piglin {}", nearbyPlayers.size(), zombifiedPiglin.getUUID());
+            }
             if (nearbyPlayers.isEmpty()) {
                 // No players nearby, clear anger
                 zombifiedPiglin.setRemainingPersistentAngerTime(0);
@@ -172,7 +178,9 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
             angryPiglins.remove(zombifiedPiglin.getUUID());
             zombifiedPiglin.setRemainingPersistentAngerTime(0);
             zombifiedPiglin.setPersistentAngerTarget(null);
-            logger.debug("Zombified piglin {} calmed down (no players nearby)", zombifiedPiglin.getUUID());
+            if (config.shouldDebugLog()) {
+                logger.debug("Zombified piglin {} calmed down (no players nearby)", zombifiedPiglin.getUUID());
+            }
             return;
         }
 
@@ -185,7 +193,9 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
             // New nearest player, check if we can switch
             if (currentTarget == null || System.currentTimeMillis() - currentTarget.timeStamp() > config.getTargetSwitchThresholdValue(true)) { // 10 seconds threshold
                 newTarget = nearestPlayer;
-                logger.debug("Zombified piglin {} switching anger target to player {}", zombifiedPiglin.getUUID(), newTarget.getUUID());
+                if (config.shouldDebugLog()) {
+                    logger.debug("Zombified piglin {} switching anger target to player {}", zombifiedPiglin.getUUID(), newTarget.getUUID());
+                }
             }
         } else if (currentTarget.player().getUUID().equals(nearestPlayer.getUUID())) {
             // Same player, update timestamp
@@ -198,14 +208,18 @@ public class HostileZombifiedPiglinsModule extends AbstractModule<HostileZombifi
         if (!zombifiedPiglin.isAngryAt(newTarget) || zombifiedPiglin.getRemainingPersistentAngerTime() < 100) {
             var targetPlayerTime = makeHostileToPlayer(zombifiedPiglin, newTarget);
             if (targetPlayerTime != null) {
-                logger.debug("Zombified piglin {} re-angered at player {}", zombifiedPiglin.getUUID(), targetPlayerTime.player().getUUID());
+                if (config.shouldDebugLog()) {
+                    logger.debug("Zombified piglin {} re-angered at player {}", zombifiedPiglin.getUUID(), targetPlayerTime.player().getUUID());
+                }
 //                angryPiglins.put(zombifiedPiglin.getUUID(), targetPlayerTime);
             } else {
                 // No players nearby, clear anger
                 angryPiglins.remove(zombifiedPiglin.getUUID());
                 zombifiedPiglin.setRemainingPersistentAngerTime(0);
                 zombifiedPiglin.setPersistentAngerTarget(null);
-                logger.debug("Zombified piglin {} calmed down (no players nearby)", zombifiedPiglin.getUUID());
+                if (config.shouldDebugLog()) {
+                    logger.debug("Zombified piglin {} calmed down (no players nearby)", zombifiedPiglin.getUUID());
+                }
             }
         }
 

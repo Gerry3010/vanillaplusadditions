@@ -25,6 +25,9 @@ public class ModulesConfig {
     private static final List<Module> registeredModules = new ArrayList<>();
     private static final Map<String, ModuleConfig> moduleConfigs = new HashMap<>();
 
+    // Global debug logging configuration
+    private static ModConfigSpec.BooleanValue globalDebugLogging;
+    
     // The configuration specification - built dynamically
     private static ModConfigSpec SPEC = null;
     private static boolean configBuilt = false;
@@ -48,8 +51,14 @@ public class ModulesConfig {
         }
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
-        builder.comment("VanillaPlusAdditions Module Configuration")
-                .push("modules");
+        builder.comment("VanillaPlusAdditions Module Configuration");
+        
+        // Add global debug logging option
+        globalDebugLogging = builder
+                .comment("Enable debug logging for all modules (can be overridden by individual module settings)")
+                .define("globalDebugLogging", false);
+        
+        builder.push("modules");
 
         // Build configuration for each registered module
         for (Module module : registeredModules) {
@@ -129,6 +138,15 @@ public class ModulesConfig {
         boolean defaultEnabled = module.isEnabledByDefault();
         LOGGER.debug("Module {} enabled state: {} (default fallback)", moduleId, defaultEnabled);
         return defaultEnabled;
+    }
+    
+    /**
+     * Checks if global debug logging is enabled.
+     * 
+     * @return true if global debug logging should be enabled
+     */
+    public static boolean isGlobalDebugLoggingEnabled() {
+        return globalDebugLogging != null && globalDebugLogging.get();
     }
 
     /**
