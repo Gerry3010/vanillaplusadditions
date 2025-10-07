@@ -2,6 +2,8 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'net.neoforged.gradle.userdev' version '7.0.192'
+    id 'checkstyle'
+    id 'com.github.spotbugs' version '5.2.1'
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -18,6 +20,7 @@ group = mod_group_id
 
 repositories {
     // Add here additional repositories if required by some of the dependencies below.
+    gradlePluginPortal() // For SpotBugs plugin
 }
 
 base {
@@ -202,5 +205,34 @@ idea {
     module {
         downloadSources = true
         downloadJavadoc = true
+    }
+}
+
+// Code Quality Configuration
+checkstyle {
+    toolVersion = '10.12.5'
+    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+    ignoreFailures = false
+    maxWarnings = 0
+}
+
+spotbugs {
+    toolVersion = '4.8.3'
+    ignoreFailures = false
+    effort = 'max'
+    reportLevel = 'medium'
+}
+
+spotbugsMain {
+    reports {
+        xml.required = false
+        html.required = true
+    }
+}
+
+spotbugsTest {
+    reports {
+        xml.required = false
+        html.required = true
     }
 }
