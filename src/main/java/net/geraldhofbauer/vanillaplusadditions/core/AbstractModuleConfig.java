@@ -5,6 +5,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Debug logging mode for modules.
+ */
+enum DebugLoggingMode {
+    /**
+     * Use the global debug logging setting.
+     */
+    AUTO,
+    /**
+     * Force debug logging on for this module.
+     */
+    ON,
+    /**
+     * Force debug logging off for this module.
+     */
+    OFF
+}
+
+/**
  * Abstract base class for module configurations.
  * This class provides the standard "enabled" property that all modules should have,
  * and allows subclasses to add their own specific configuration options.
@@ -14,7 +32,7 @@ public abstract class AbstractModuleConfig<M extends Module, C extends ModuleCon
     
     // Standard configuration values that all modules have
     protected ModConfigSpec.BooleanValue enabled;
-    protected ModConfigSpec.BooleanValue debugLogging;
+    protected ModConfigSpec.EnumValue<DebugLoggingMode> debugLogging;
     
     // Module reference for getting default values
     private final M module;
@@ -42,8 +60,8 @@ public abstract class AbstractModuleConfig<M extends Module, C extends ModuleCon
             .define("enabled", module.isEnabledByDefault());
         
         debugLogging = builder
-            .comment(String.format("Enable debug logging for the %s module (overrides global debug logging setting)", displayName))
-            .define("debug_logging", false);
+            .comment(String.format("Debug logging mode for the %s module (AUTO = use global setting, ON = force enable, OFF = force disable)", displayName))
+            .defineEnum("debug_logging", DebugLoggingMode.AUTO);
         
         // Allow subclasses to add their own configuration
         buildModuleSpecificConfig(builder);
@@ -112,7 +130,7 @@ public abstract class AbstractModuleConfig<M extends Module, C extends ModuleCon
      * 
      * @return The debug logging configuration value
      */
-    protected ModConfigSpec.BooleanValue getDebugLoggingConfig() {
+    protected ModConfigSpec.EnumValue<DebugLoggingMode> getDebugLoggingConfig() {
         return debugLogging;
     }
     
@@ -122,7 +140,11 @@ public abstract class AbstractModuleConfig<M extends Module, C extends ModuleCon
      * @return true if debug logging should be enabled for this module
      */
     public boolean isDebugLoggingEnabled() {
-        return debugLogging != null && debugLogging.get();
+        if (debugLogging != null) {
+            DebugLoggingMode mode = debugLogging.get();
+            return mode == DebugLoggingMode.ON;
+        }
+        return false;
     }
     
     /**
@@ -143,12 +165,21 @@ public abstract class AbstractModuleConfig<M extends Module, C extends ModuleCon
      * @return true if debug logging should be enabled
      */
     public boolean shouldDebugLog() {
-        // Module-specific debug logging overrides global setting
         if (debugLogging != null) {
-            return debugLogging.get();
+            DebugLoggingMode mode = debugLogging.get();
+            switch (mode) {
+                case ON:
+                    return true;
+                case OFF:
+                    return false;
+                case AUTO:
+                default:
+                    // Fall back to global debug logging setting
+                    return ModulesConfig.isGlobalDebugLoggingEnabled();
+            }
         }
         
-        // Fall back to global debug logging setting
+        // Fallback if config not loaded yet - use global setting
         return ModulesConfig.isGlobalDebugLoggingEnabled();
     }
     
