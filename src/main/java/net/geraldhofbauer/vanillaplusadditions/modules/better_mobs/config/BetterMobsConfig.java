@@ -80,7 +80,7 @@ public class BetterMobsConfig extends AbstractModuleConfig<BetterMobsModule, Bet
         List<String> belowZeroDefaultConfig = getBelowZeroConf();
 
         belowZeroConfig = builder
-                .comment("Configuration for mobs spawned below Y=0")
+                .comment("Configuration for mobs spawned below Y=0 or in the Nether/End")
                 .define("below_zero", belowZeroDefaultConfig);
 
         enabledMobs = builder
@@ -348,7 +348,7 @@ public class BetterMobsConfig extends AbstractModuleConfig<BetterMobsModule, Bet
 
     public Map<BetterMobsConfigKey, List<String>> getRandomEquipmentSetupForMob(int y) {
         List<String> configEntries = y >= 0 ? aboveZeroConfig.get() : belowZeroConfig.get();
-        java.util.Random random = new java.util.Random();
+        java.util.Random random = new java.util.Random(y); // Seed basierend auf Y-Koordinate
         Map<BetterMobsConfigKey, List<String>> equipment = new java.util.HashMap<>();
 
         // Gruppiere Einträge nach ConfigKey

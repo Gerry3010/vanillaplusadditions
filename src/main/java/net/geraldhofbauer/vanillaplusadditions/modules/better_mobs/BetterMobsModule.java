@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
@@ -66,7 +67,12 @@ public class BetterMobsModule extends AbstractModule<BetterMobsModule, BetterMob
         debugInfo.append("Type: ").append(mobId).append("\n");
         debugInfo.append("Position: ").append(mob.blockPosition()).append("\n");
 
+        // Zufälliges Equipment-Setup basierend auf Y-Koordinate
         int y = mob.blockPosition().getY();
+        // Wenn Nether oder Ende, Y immer kleiner 0
+        if (serverLevel.dimension() == Level.NETHER || serverLevel.dimension() == Level.END) {
+            y = Math.abs(y) * -1;
+        }
         var setup = config.getRandomEquipmentSetupForMob(y);
         getLogger().debug("Setup: {}", setup);
         if (setup == null) {

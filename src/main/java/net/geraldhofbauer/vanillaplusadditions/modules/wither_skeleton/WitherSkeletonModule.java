@@ -1,5 +1,6 @@
 package net.geraldhofbauer.vanillaplusadditions.modules.wither_skeleton;
 
+import it.unimi.dsi.fastutil.longs.LongSet;
 import net.geraldhofbauer.vanillaplusadditions.core.AbstractModule;
 import net.geraldhofbauer.vanillaplusadditions.core.AbstractModuleConfig;
 import net.minecraft.ChatFormatting;
@@ -13,10 +14,14 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.monster.WitherSkeleton;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.structures.NetherFortressStructure;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
+
+import java.util.Map;
 
 /**
  * Wither Skeleton Module
@@ -87,6 +92,29 @@ public class WitherSkeletonModule
             return;
         }
 
+        // Check if the skeleton is inside a fortress - allow it if so
+        Map<Structure, LongSet> allStructures = serverLevel.structureManager().getAllStructuresAt(
+                event.getEntity().blockPosition());
+        if (allStructures.isEmpty()) {
+            return;
+        }
+        boolean insideFortress = false;
+        for (Structure structure : allStructures.keySet()) {
+            if (structure instanceof NetherFortressStructure) {
+                // Allow normal skeleton spawn inside Nether Fortress
+                if (getConfig().shouldDebugLog()) {
+                    getLogger().debug("Allowed normal skeleton spawn inside Nether Fortress at {}",
+                            event.getEntity().blockPosition());
+                }
+                insideFortress = true;
+                break;
+            }
+        }
+
+        if (!insideFortress) {
+            return;
+        }
+
         // This is a normal skeleton trying to spawn in the Nether - block it!
         if (getConfig().shouldDebugLog()) {
             getLogger().debug("Blocked normal skeleton spawn in Nether at {}", event.getEntity().blockPosition());
@@ -106,7 +134,7 @@ public class WitherSkeletonModule
      * Broadcasts a message to all players about the blocked skeleton spawn
      */
     private void broadcastSkeletonBlockedMessage(ServerLevel level, BlockPos position) {
-        Component message = Component.literal("🔥 A normal skeleton tried to spawn in the Nether but was blocked! 🔥")
+        Component message = Component.literal("🔥 A normal skeleton tried to spawn in a Fortress but was blocked! 🔥")
                 .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
                 .append(Component.literal("\nLocation: " + position.getX() + ", " + position.getY()
                                 + ", " + position.getZ())
