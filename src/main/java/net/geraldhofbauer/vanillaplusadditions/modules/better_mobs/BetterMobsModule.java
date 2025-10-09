@@ -98,7 +98,6 @@ public class BetterMobsModule extends AbstractModule<BetterMobsModule, BetterMob
             return;
         }
         String material = materials.get(new Random(uuid.getLeastSignificantBits()).nextInt(materials.size()));
-        debugInfo.append("Material: ").append(material).append("\n");
 
         if (getConfig().shouldDebugLog()) {
             getLogger().debug("Applying gear type '{}' to mob '{}' at Y: {}", material, mobId, y);
@@ -247,14 +246,15 @@ public class BetterMobsModule extends AbstractModule<BetterMobsModule, BetterMob
         }
 
         // Debug-Nachricht ausgeben und an alle Spieler senden, wenn debug aktiviert ist
-        if (getConfig().shouldDebugLog()) {
-            getLogger().debug(debugInfo.toString());
+        if (getConfig().shouldDebugLog() && !debugInfo.isEmpty()) {
+            var di = new StringBuilder("Material: ").append(material).append("\n").append(debugInfo);
+            getLogger().debug(di.toString());
 
             String mn = mob.getType().getDescriptionId(); // mob name
             mn = Component.translatable(mn).getString(); // übersetzter mob name
 
             // Erstelle eine kompakte Nachricht mit Hover-Text
-            var hoverComponent = Component.literal(debugInfo.toString());
+            var hoverComponent = Component.literal(di.toString());
             var mainMessage = Component
                     .literal("§6[Debug] §r§l" + mn + "§r§8 mit besonderen Eigenschaften gespawnt!"
                             + " §7(Hover für Details, Klick zum Teleportieren)")
