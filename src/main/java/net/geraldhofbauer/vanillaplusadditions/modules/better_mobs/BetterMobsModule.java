@@ -73,15 +73,11 @@ public class BetterMobsModule extends AbstractModule<BetterMobsModule, BetterMob
 
         // StringBuilder für Debug-Nachricht
         StringBuilder debugInfo = new StringBuilder();
-        debugInfo.append("Mob spawned with properties:\n");
-        debugInfo.append("Type: ").append(mobId).append("\n");
-        debugInfo.append("Position: ").append(mob.blockPosition()).append("\n");
 
         // Zufälliges Equipment-Setup basierend auf Y-Koordinate
         int y = mob.blockPosition().getY();
         UUID uuid = mob.getUUID();
         var setup = config.getRandomEquipmentSetupForMob(serverLevel.dimension(), uuid, y);
-        getLogger().debug("Setup: {}", setup);
         if (setup == null) {
             if (getConfig().shouldDebugLog()) {
                 getLogger().debug("No equipment setup found for mob '{}' at Y: {}", mobId, y);
@@ -247,7 +243,12 @@ public class BetterMobsModule extends AbstractModule<BetterMobsModule, BetterMob
 
         // Debug-Nachricht ausgeben und an alle Spieler senden, wenn debug aktiviert ist
         if (getConfig().shouldDebugLog() && !debugInfo.isEmpty()) {
-            var di = new StringBuilder("Material: ").append(material).append("\n").append(debugInfo);
+            var di = new StringBuilder();
+            di.append("Mob spawned with properties:\n");
+            di.append("Type: ").append(mobId).append("\n");
+            di.append("Position: ").append(mob.blockPosition()).append("\n");
+            di.append("Material: ").append(material).append("\n");
+            di.append(debugInfo);
             getLogger().debug(di.toString());
 
             String mn = mob.getType().getDescriptionId(); // mob name
