@@ -134,11 +134,19 @@ public class WitherSkeletonModule
      * Broadcasts a message to all players about the blocked skeleton spawn
      */
     private void broadcastSkeletonBlockedMessage(ServerLevel level, BlockPos position) {
-        Component message = Component.literal("🔥 A normal skeleton tried to spawn in a Fortress but was blocked! 🔥")
+        Component message = Component
+                .literal("🔥 A normal skeleton tried to spawn in a Fortress but was blocked! 🔥")
                 .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
-                .append(Component.literal("\nLocation: " + position.getX() + ", " + position.getY()
-                                + ", " + position.getZ())
-                        .withStyle(ChatFormatting.YELLOW));
+                .append(Component
+                        .literal("\nLocation: %d, %d, %d".formatted(position.getX(), position.getY(), position.getZ()))
+                        .withStyle(ChatFormatting.YELLOW)
+                        .withStyle(style -> style.withClickEvent(
+                                new net.minecraft.network.chat.ClickEvent(
+                                        net.minecraft.network.chat.ClickEvent.Action.RUN_COMMAND,
+                                        "/tp @p %d %d %d".formatted(position.getX(), position.getY(), position.getZ())
+                                )
+                        ))
+                );
 
         // Send to all players on the server
         for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {

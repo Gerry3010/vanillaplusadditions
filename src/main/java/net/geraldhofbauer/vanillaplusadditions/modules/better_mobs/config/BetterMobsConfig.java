@@ -2,6 +2,8 @@ package net.geraldhofbauer.vanillaplusadditions.modules.better_mobs.config;
 
 import net.geraldhofbauer.vanillaplusadditions.core.AbstractModuleConfig;
 import net.geraldhofbauer.vanillaplusadditions.modules.better_mobs.BetterMobsModule;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -11,6 +13,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
 
 public class BetterMobsConfig extends AbstractModuleConfig<BetterMobsModule, BetterMobsConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BetterMobsConfig.class);
@@ -42,10 +46,6 @@ public class BetterMobsConfig extends AbstractModuleConfig<BetterMobsModule, Bet
             "minecraft:zombie",
             "minecraft:skeleton",
             "minecraft:husk",
-            "minecraft:stray",
-            "minecraft:drowned",
-            "minecraft:piglin",
-            "minecraft:zombified_piglin",
             "minecraft:wither_skeleton"
     );
 
@@ -54,6 +54,7 @@ public class BetterMobsConfig extends AbstractModuleConfig<BetterMobsModule, Bet
     private ModConfigSpec.IntValue maxDurability;
     private ModConfigSpec.ConfigValue<List<String>> aboveZeroConfig;
     private ModConfigSpec.ConfigValue<List<String>> belowZeroConfig;
+    private ModConfigSpec.ConfigValue<List<String>> netherEndConfig;
     private ModConfigSpec.ConfigValue<List<? extends String>> enabledMobs;
     private ModConfigSpec.ConfigValue<List<? extends String>> enabledMobsWithArmor;
 
@@ -83,6 +84,12 @@ public class BetterMobsConfig extends AbstractModuleConfig<BetterMobsModule, Bet
                 .comment("Configuration for mobs spawned below Y=0 or in the Nether/End")
                 .define("below_zero", belowZeroDefaultConfig);
 
+        List<String> netherEndDefaultConfig = getNetherEndConf();
+
+        netherEndConfig = builder
+                .comment("Configuration for mobs spawned in the Nether or End dimension")
+                .define("nether_end", netherEndDefaultConfig);
+
         enabledMobs = builder
                 .comment("""
                         List of mob entity IDs that should receive random equipment.
@@ -100,7 +107,7 @@ public class BetterMobsConfig extends AbstractModuleConfig<BetterMobsModule, Bet
         enabledMobsWithArmor = builder
                 .comment("""
                         List of mob entity IDs that can receive armor
-                        (e.g. minecraft:zombie, minecraft:skeleton, minecraft:husk, minecraft:stray, minecraft:drowned)
+                        (e.g. minecraft:zombie, minecraft:skeleton, minecraft:husk, minecraft:wither_skeleton)
                         """)
                 .defineList("enabled_mobs_with_armor",
                         DEFAULT_ENABLED_MOBS_WITH_ARMOR,
@@ -115,9 +122,9 @@ public class BetterMobsConfig extends AbstractModuleConfig<BetterMobsModule, Bet
         List<String> config = new ArrayList<>();
 
         // Gear types
-        config.add(BetterMobsConfigKey.GEAR_TYPES.name() + ":gold:30");
-        config.add(BetterMobsConfigKey.GEAR_TYPES.name() + ":iron:50");
-        config.add(BetterMobsConfigKey.GEAR_TYPES.name() + ":leather:20");
+        config.add(BetterMobsConfigKey.GEAR_TYPES.name() + ":gold:5");
+        config.add(BetterMobsConfigKey.GEAR_TYPES.name() + ":chainmail:10");
+        config.add(BetterMobsConfigKey.GEAR_TYPES.name() + ":leather:15");
 
         // Armor spawn chances
         config.add(BetterMobsConfigKey.ARMOR_CHANCES.name() + ":helmet:60");
@@ -163,8 +170,8 @@ public class BetterMobsConfig extends AbstractModuleConfig<BetterMobsModule, Bet
         config.add(BetterMobsConfigKey.ENCHANTMENT_LEVELS.name() + ":max_level:3");
 
         // Potion effects
-        config.add(BetterMobsConfigKey.POTION_EFFECTS.name() + ":speed:15");
-        config.add(BetterMobsConfigKey.POTION_EFFECTS.name() + ":strength:10");
+        config.add(BetterMobsConfigKey.POTION_EFFECTS.name() + ":speed:5");
+        config.add(BetterMobsConfigKey.POTION_EFFECTS.name() + ":strength:5");
         config.add(BetterMobsConfigKey.POTION_EFFECTS.name() + ":haste:5");
 
         return config;
@@ -178,8 +185,6 @@ public class BetterMobsConfig extends AbstractModuleConfig<BetterMobsModule, Bet
         config.add(BetterMobsConfigKey.GEAR_TYPES.name() + ":iron:30");
         config.add(BetterMobsConfigKey.GEAR_TYPES.name() + ":leather:10");
         config.add(BetterMobsConfigKey.GEAR_TYPES.name() + ":diamond:30");
-        config.add(BetterMobsConfigKey.GEAR_TYPES.name() + ":netherite:15");
-        config.add(BetterMobsConfigKey.GEAR_TYPES.name() + ":stone:5");
 
         // Armor spawn chances (höhere Chancen unter Y=0)
         config.add(BetterMobsConfigKey.ARMOR_CHANCES.name() + ":helmet:80");
@@ -225,9 +230,65 @@ public class BetterMobsConfig extends AbstractModuleConfig<BetterMobsModule, Bet
         config.add(BetterMobsConfigKey.ENCHANTMENT_LEVELS.name() + ":max_level:5");
 
         // Potion effects
-        config.add(BetterMobsConfigKey.POTION_EFFECTS.name() + ":speed:25");
-        config.add(BetterMobsConfigKey.POTION_EFFECTS.name() + ":strength:20");
-        config.add(BetterMobsConfigKey.POTION_EFFECTS.name() + ":haste:15");
+        config.add(BetterMobsConfigKey.POTION_EFFECTS.name() + ":speed:10");
+        config.add(BetterMobsConfigKey.POTION_EFFECTS.name() + ":strength:10");
+        config.add(BetterMobsConfigKey.POTION_EFFECTS.name() + ":haste:10");
+
+        return config;
+    }
+
+    private static @NotNull List<String> getNetherEndConf() {
+        List<String> config = new ArrayList<>();
+
+        // Gear types
+        config.add(BetterMobsConfigKey.GEAR_TYPES.name() + ":gold:30");
+        config.add(BetterMobsConfigKey.GEAR_TYPES.name() + ":netherite:20");
+
+        // Armor spawn chances (höhere Chancen unter Y=0)
+        config.add(BetterMobsConfigKey.ARMOR_CHANCES.name() + ":helmet:80");
+        config.add(BetterMobsConfigKey.ARMOR_CHANCES.name() + ":chestplate:70");
+        config.add(BetterMobsConfigKey.ARMOR_CHANCES.name() + ":leggings:65");
+        config.add(BetterMobsConfigKey.ARMOR_CHANCES.name() + ":boots:60");
+
+        // Helmet enchantments
+        config.add(BetterMobsConfigKey.HELMET_ENCHANTMENTS.name() + ":protection:30");
+        config.add(BetterMobsConfigKey.HELMET_ENCHANTMENTS.name() + ":fire_protection:15");
+        config.add(BetterMobsConfigKey.HELMET_ENCHANTMENTS.name() + ":blast_protection:15");
+        config.add(BetterMobsConfigKey.HELMET_ENCHANTMENTS.name() + ":projectile_protection:15");
+        config.add(BetterMobsConfigKey.HELMET_ENCHANTMENTS.name() + ":thorns:10");
+
+        // Chestplate enchantments
+        config.add(BetterMobsConfigKey.CHESTPLATE_ENCHANTMENTS.name() + ":protection:30");
+        config.add(BetterMobsConfigKey.CHESTPLATE_ENCHANTMENTS.name() + ":fire_protection:15");
+        config.add(BetterMobsConfigKey.CHESTPLATE_ENCHANTMENTS.name() + ":blast_protection:15");
+        config.add(BetterMobsConfigKey.CHESTPLATE_ENCHANTMENTS.name() + ":projectile_protection:15");
+        config.add(BetterMobsConfigKey.CHESTPLATE_ENCHANTMENTS.name() + ":thorns:10");
+
+        // Leggings enchantments
+        config.add(BetterMobsConfigKey.LEGGINGS_ENCHANTMENTS.name() + ":protection:30");
+        config.add(BetterMobsConfigKey.LEGGINGS_ENCHANTMENTS.name() + ":fire_protection:15");
+        config.add(BetterMobsConfigKey.LEGGINGS_ENCHANTMENTS.name() + ":blast_protection:15");
+        config.add(BetterMobsConfigKey.LEGGINGS_ENCHANTMENTS.name() + ":projectile_protection:15");
+        config.add(BetterMobsConfigKey.LEGGINGS_ENCHANTMENTS.name() + ":thorns:10");
+
+        // Boots enchantments
+        config.add(BetterMobsConfigKey.BOOTS_ENCHANTMENTS.name() + ":protection:30");
+        config.add(BetterMobsConfigKey.BOOTS_ENCHANTMENTS.name() + ":fire_protection:15");
+        config.add(BetterMobsConfigKey.BOOTS_ENCHANTMENTS.name() + ":blast_protection:15");
+        config.add(BetterMobsConfigKey.BOOTS_ENCHANTMENTS.name() + ":projectile_protection:15");
+        config.add(BetterMobsConfigKey.BOOTS_ENCHANTMENTS.name() + ":feather_falling:20");
+        config.add(BetterMobsConfigKey.BOOTS_ENCHANTMENTS.name() + ":thorns:10");
+        config.add(BetterMobsConfigKey.BOOTS_ENCHANTMENTS.name() + ":depth_strider:10");
+        config.add(BetterMobsConfigKey.BOOTS_ENCHANTMENTS.name() + ":frost_walker:10");
+
+        // Enchantment levels
+        config.add(BetterMobsConfigKey.ENCHANTMENT_LEVELS.name() + ":min_level:2");
+        config.add(BetterMobsConfigKey.ENCHANTMENT_LEVELS.name() + ":max_level:5");
+
+        // Potion effects
+        config.add(BetterMobsConfigKey.POTION_EFFECTS.name() + ":speed:10");
+        config.add(BetterMobsConfigKey.POTION_EFFECTS.name() + ":strength:10");
+        config.add(BetterMobsConfigKey.POTION_EFFECTS.name() + ":haste:10");
 
         return config;
     }
@@ -238,11 +299,13 @@ public class BetterMobsConfig extends AbstractModuleConfig<BetterMobsModule, Bet
         // React to module-specific configuration changes if needed
         if (shouldDebugLog()) {
             LOGGER.debug("Module-specific configuration loaded for Better Mobs module");
-            if (dropChance != null && maxDurability != null && aboveZeroConfig != null && belowZeroConfig != null) {
+            if (dropChance != null && maxDurability != null
+                    && aboveZeroConfig != null && belowZeroConfig != null && netherEndConfig != null) {
                 LOGGER.debug("  - Drop chance: {}%", dropChance.get());
                 LOGGER.debug("  - Max durability: {}", maxDurability.get());
                 LOGGER.debug("  - Above zero config: {}", aboveZeroConfig.get());
                 LOGGER.debug("  - Below zero config: {}", belowZeroConfig.get());
+                LOGGER.debug("  - Nether/End config: {}", netherEndConfig.get());
             }
         }
     }
@@ -287,6 +350,18 @@ public class BetterMobsConfig extends AbstractModuleConfig<BetterMobsModule, Bet
             return Map.of();
         }
         return convertToKeyMap(belowZeroConfig.get());
+    }
+
+    /**
+     * Gets the configuration for mobs spawned in the Nether or End dimension.
+     *
+     * @return map of configuration values, or default value if not configured
+     */
+    public Map<BetterMobsConfigKey, Map<String, Integer>> getNetherEndConfig() {
+        if (netherEndConfig == null) {
+            return Map.of();
+        }
+        return convertToKeyMap(netherEndConfig.get());
     }
 
     /**
@@ -346,9 +421,16 @@ public class BetterMobsConfig extends AbstractModuleConfig<BetterMobsModule, Bet
         return getEnabledMobsWithArmor().contains(entityId);
     }
 
-    public Map<BetterMobsConfigKey, List<String>> getRandomEquipmentSetupForMob(int y) {
-        List<String> configEntries = y >= 0 ? aboveZeroConfig.get() : belowZeroConfig.get();
-        java.util.Random random = new java.util.Random(y); // Seed basierend auf Y-Koordinate
+    public Map<BetterMobsConfigKey, List<String>> getRandomEquipmentSetupForMob(ResourceKey<Level> dimension,
+                                                                                UUID uuid,
+                                                                                int y) {
+        List<String> configEntries;
+        if (dimension == Level.END || dimension == Level.NETHER) {
+            configEntries = netherEndConfig.get();
+        } else {
+            configEntries = y >= 0 ? aboveZeroConfig.get() : belowZeroConfig.get();
+        }
+        Random random = new Random(uuid.getLeastSignificantBits()); // Seed basierend auf Y-Koordinate
         Map<BetterMobsConfigKey, List<String>> equipment = new java.util.HashMap<>();
 
         // Gruppiere Einträge nach ConfigKey
